@@ -1,0 +1,33 @@
+<div id="overlay-back"></div>
+<div id="overlay">
+    <form>
+        <div class="form-group">
+            <label for="objectType">Object Type</label>
+            <select class="form-control" id="objectType" placeholder="Type" name="type">
+                <option value="person">Person</option>
+                <option value="animal">Animal</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="tagName">Tag</label>
+            <input type="text" class="form-control" id="tagName" placeholder="Tag Name" name="tag">
+        </div>
+        <button id="submitObject" type="submit" class="btn btn-success">Submit</button>
+        <button id="cancelObject" class="btn btn-danger">Cancel</button>
+    </form>
+</div>
+
+<div class="videos col-lg-10">
+    <h2>Videos</h2>
+    <div id="videoControl">
+        <button id="playButton" class="btn btn-info">Play</button>
+        <button id="pauseButton" class="btn btn-info">Pause</button>
+        <input type="range" value="0" id="scrub" />
+    </div>
+</div>
+
+<div class="objects col-lg-2">
+    <h2>Objects</h2>
+    <button id="newObject" class="btn btn-success">Add</button>
+    <ol></ol>
+</div>
