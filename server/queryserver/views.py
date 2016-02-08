@@ -6,11 +6,10 @@ from queryserver.models import Session, Soc, Video, Query, Object, Box
 from queryserver.serializers import SessionSerializer, SocSerializer, VideoSerializer, QuerySerializer, ObjectSerializer, BoxSerializer
 
 
-@api_view(['GET', 'POST'])
 def home(request):
     return render(request, 'index.html')
 
-
+@api_view(['GET', 'POST'])
 def session_list(request):
     """
     List all sessions, or create a new session.

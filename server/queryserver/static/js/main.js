@@ -43,11 +43,12 @@ require.config({
 
 require(['core/router', 'core/client', 'Backbone'], function (Router, client, Backbone) {
 	var app = {
-		root: '/'
+		root: '/index'
 	};
 
 	window.Router = new Router();
 	client.setup(window, app);
 
 	Backbone.history.start({ pushState: true });
+  $('#navbar > ul > li:nth-child(1) > a').click();
 });
