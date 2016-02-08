@@ -1,50 +1,86 @@
 define(function(require) {
 	var Backbone = require('Backbone');
-	var VideoView = require('./VideoView');
-	var ObjectView = require('./ObjectView');
-    var ObjectModel = require('../models/Object');
-    var ObjectCollection = require('../collections/ObjectCollection');
 
-	var SocView = Backbone.View.extend({
+  var Session = require('../models/Session');
+  var ObjectModel = require('../models/Object');
+
+  var ObjectCollection = require('../collections/ObjectCollection');
+  var VideoCollection = require('../collections/VideoCollection');
+
+ 	var VideoView = require('./VideoView');
+	var ObjectView = require('./ObjectView');
+
+  var SocView = Backbone.View.extend({
 		tagName: 'div',
 
 		events: {
+      'click #newSession': 'newSession',
+      'click #loadSession': 'loadSession',
 			'click #newObject': 'newObject',
 			'click #cancelObject': 'cancelObject',
 			'click #submitObject': 'submitObject',
-            'click #playButton': 'playPauseAll',
-            'click .boundingBoxButton': 'newBoundingBox',
-            'click .videoDiv': 'handleVideoClick'
+      'click #playButton': 'playPauseAll',
+      'click .boundingBoxButton': 'newBoundingBox',
+      'click .videoDiv': 'handleVideoClick'
 		},
 
 		template: require('hbs!./../templates/SocView'),
 
 		initialize: function () {
-            this.playing = false;
-			this.subviews = [];
-            this.videoPlayers = [];
-            this.objectCollection = new ObjectCollection();
-            this.objectCollection.on('change', this.renderObjectList);
-            this.drawing = false;
+        this.playing = false;
+        this.subviews = [];
+        this.videoPlayers = [];
+        this.objectCollection = new ObjectCollection();
+        this.objectCollection.on('change', this.renderObjectList);
+        this.drawing = false;
 
-            var cH = $('#crosshair-h'),
-                cV = $('#crosshair-v');
-            this.cH = cH;
-            this.cV = cV;
+        var cH = $('#crosshair-h'),
+        cV = $('#crosshair-v');
+        this.cH = cH;
+        this.cV = cV;
+    },
+
+    newSession: function () {
+      var self = this;
+      self.session = new Session({'socid': 1});
+      self.session.save(null, {
+        error: function(err) {
+          console.log(err);
         },
+        success: function(data) {
+          console.log(data);
+          console.log('Start loading videos');
+          self.videoCollection = new VideoCollection();
+          self.videoCollection.url = '/api/videoswithsocid/'+data.get('socid');
+          self.videoCollection.fetch({
+            success: function(vids) {
+              console.log(vids);
+              self.renderVideos();
+            }
+          });
+        }
+      });
+    },
+
+    loadSession: function () {
+
+    },
 
 		render: function () {
-            var me = this;
+      var me = this;
 			this.$el.html(this.template());
-
-			var videos = this.$('.videos');
-			this.collection.forEach(function (video) {
-				var view = new VideoView({model: video});
-				videos.append(view.render().el);
-			}, this);
-
-            return this;
+      return this;
 		},
+
+    renderVideos: function () {
+      var self = this;
+      var videos = this.$('.videos');
+      self.videoCollection.forEach(function (video) {
+        var view = new VideoView({model: video});
+        videos.append(view.render().el);
+      }, this);
+
+    },
 
         renderObject: function (obj) {
             var objectList = this.$('.objects ol');
@@ -168,11 +204,11 @@ define(function(require) {
         playPauseAll: function(e) {
             var self = this;
             if(self.videoPlayers.length === 0) { // bind videos this only once
-                var toAdd = self.collection.length;
+                var toAdd = self.videoCollection.length;
                 var added = 0;
-                self.collection.forEach(function(v) {
+                self.videoCollection.forEach(function(v) {
                     added++;
-                    self.videoPlayers.push(new Popcorn('#'+ v.get('videoId')));
+                    self.videoPlayers.push(Popcorn('#video'+ v.get('id')));
                     if(added === toAdd) {
                         self.bindVideos();
                     }
@@ -180,12 +216,12 @@ define(function(require) {
             }
             e.preventDefault();
             if(this.playing) {
-                this.collection.forEach(function (video) {
-                    document.getElementById(video.get('videoId')).pause();
+                self.videoCollection.forEach(function (video) {
+                    document.getElementById('video'+video.get('id')).pause();
                 }, this);
             } else {
-                this.collection.forEach(function (video) {
-                    document.getElementById(video.get('videoId')).play();
+                self.videoCollection.forEach(function (video) {
+                    document.getElementById('video'+video.get('id')).play();
                 }, this);
             }
             this.playing = !this.playing;
