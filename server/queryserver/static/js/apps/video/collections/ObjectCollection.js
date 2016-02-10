@@ -6,6 +6,7 @@ define(function (require) {
     var Object = require('./../models/Object');
 
     var ObjectCollection = Backbone.Collection.extend({
+        url: '/api/object',
         model: Object
     });
 

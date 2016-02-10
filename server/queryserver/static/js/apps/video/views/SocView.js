@@ -27,11 +27,17 @@ define(function(require) {
 		template: require('hbs!./../templates/SocView'),
 
 		initialize: function () {
+        var self = this;
         this.playing = false;
         this.subviews = [];
         this.videoPlayers = [];
         this.objectCollection = new ObjectCollection();
-        this.objectCollection.on('change', this.renderObjectList);
+
+        this.objectCollection.fetch({
+          success: function(objs) {
+            objs.forEach(self.renderObject);
+          }
+        });
         this.drawing = false;
 
         var cH = $('#crosshair-h'),
@@ -48,8 +54,12 @@ define(function(require) {
           console.log(err);
         },
         success: function(data) {
-          console.log(data);
-          console.log('Start loading videos');
+          /*  after session selection
+              we need to intialize 3 collections
+              VideoCollection
+              ObjectCollection
+              BoundingBoxCollection
+           */
           self.videoCollection = new VideoCollection();
           self.videoCollection.url = '/api/videoswithsocid/'+data.get('socid');
           self.videoCollection.fetch({
@@ -82,11 +92,11 @@ define(function(require) {
 
     },
 
-        renderObject: function (obj) {
-            var objectList = this.$('.objects ol');
-            var view = new ObjectView({model: obj});
-            objectList.append(view.render().el);
-        },
+    renderObject: function (obj) {
+      var objectList = $('.objects ol');
+      var view = new ObjectView({model: obj});
+      objectList.append(view.render().el);
+    },
 
 		newObject: function () {
 			console.log('create object');
@@ -100,10 +110,13 @@ define(function(require) {
 		},
 
 		submitObject: function(e) {
+      var self = this;
 			e.preventDefault();
-            var obj = new ObjectModel(this.getFormData(this.$el.find('form')));
-            this.objectCollection.add(obj);
-            this.renderObject(obj);
+      var attrs = this.getFormData(this.$el.find('form'));
+      this.objectCollection.create({
+        label: attrs.label,
+        sessionid: self.session.get('socid')
+      });
 			$('#overlay, #overlay-back').fadeOut(500);
 			console.log('add object');
 		},
