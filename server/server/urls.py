@@ -15,29 +15,26 @@ Including another URLconf
 """
 from django.conf.urls import url, patterns
 from django.contrib import admin
-from django.conf import settings
-from django.conf.urls.static import static
-import os
 
 urlpatterns = patterns('queryserver.views',
-    url(r'^api/query/$', 'query_list'),
-    url(r'^api/session/$', 'session_list'),
-    url(r'^api/soc/$', 'soc_list'),
-    url(r'^api/video/$', 'video_list'),
-    url(r'^api/object/$', 'object_list'),
-    url(r'^api/box/$', 'box_list'),
-    url(r'^api/session/(?P<pk>[0-9]+)/$', 'session_detail'),
-    url(r'^api/soc/(?P<pk>[0-9]+)/$', 'soc_detail'),
-    url(r'^api/video/(?P<pk>[0-9]+)/$', 'video_detail'),
-    url(r'^api/query/(?P<pk>[0-9]+)/$', 'query_detail'),
-    url(r'^api/object/(?P<pk>[0-9]+)/$', 'object_detail'),
-    url(r'^api/box/(?P<pk>[0-9]+)/$', 'box_detail'),
-    url(r'^api/querieswithsessionid/(?P<sessionid>[0-9]+)/$', 'queries_with_sessionid'),
-    url(r'^api/videoswithsocid/(?P<socid>[0-9]+)/$', 'videos_with_socid'),
-    url(r'^api/updatepredicates/(?P<queryid>[0-9]+)/$', 'update_predicates_with_queryid'),
-    url(r'^api/updateanswer/(?P<queryid>[0-9]+)/$', 'update_answer_with_queryid'),
-    url(r'^api/updatecomment/(?P<queryid>[0-9]+)/$', 'update_comment_with_queryid'),
-    url(r'^api/updateboxinfo/(?P<boxid>[0-9]+)/$', 'update_boxinfo_with_boxid'),
-    url(r'^index/$', 'home'),
-) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
+    url(r'^query/$', 'query_list'),
+    url(r'^session/$', 'session_list'),
+    url(r'^soc/$', 'soc_list'),
+    url(r'^video/$', 'video_list'),
+    url(r'^object/$', 'object_list'),
+    url(r'^box/$', 'box_list'),
+    url(r'^session/(?P<pk>[0-9]+)/$', 'session_detail'),
+    url(r'^soc/(?P<pk>[0-9]+)/$', 'soc_detail'),
+    url(r'^video/(?P<pk>[0-9]+)/$', 'video_detail'),
+    url(r'^query/(?P<pk>[0-9]+)/$', 'query_detail'),
+    url(r'^object/(?P<pk>[0-9]+)/$', 'object_detail'),
+    url(r'^box/(?P<pk>[0-9]+)/$', 'box_detail'),
+    url(r'^querieswithsessionid/(?P<sessionId>[0-9]+)/$', 'queries_with_sessionid'),
+    url(r'^videoswithsocid/(?P<socId>[0-9]+)/$', 'videos_with_socid'),
+    url(r'^objectswithsessionid/(?P<sessionId>[0-9]+)/$', 'objects_with_sessionid'),
+    url(r'^boxeswithsessionid/(?P<sessionId>[0-9]+)/$', 'boxes_with_sessionid'),   
+    url(r'^updatepredicates/(?P<queryId>[0-9]+)/$', 'update_predicates_with_queryid'),
+    url(r'^updateanswer/(?P<queryId>[0-9]+)/$', 'update_answer_with_queryid'),
+    url(r'^updatecomment/(?P<queryId>[0-9]+)/$', 'update_comment_with_queryid'),
+    url(r'^updateboxinfo/(?P<boxId>[0-9]+)/$', 'update_boxinfo_with_boxid'),
+)

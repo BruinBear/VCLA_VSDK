@@ -4,7 +4,7 @@ from queryserver.models import Session, Soc, Video, Query, Object, Box
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:
 	model = Session
-	fields = ('id', 'socid')
+	fields = ('id', 'soc')
 
 class SocSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,19 +14,19 @@ class SocSerializer(serializers.ModelSerializer):
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ('id', 'socid', 'name', 'url')
+        fields = ('id', 'soc', 'name', 'url')
 
 class QuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = Query
-        fields = ('id', 'sessionid', 'answer', 'comment', 'predicates')
+        fields = ('id', 'session', 'answer', 'comment', 'predicates')
 
 class ObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Object
-        fields = ('id', 'sessionid', 'label')
+        fields = ('id', 'session', 'label')
 
 class BoxSerializer(serializers.ModelSerializer):
     class Meta:
         model = Box
-        fields = ('id', 'objectid', 'videoid','time', 'x','y','xlen','ylen')
+        fields = ('id', 'object', 'video','time', 'x','y','xlen','ylen')
