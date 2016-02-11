@@ -33,11 +33,12 @@ define(function(require) {
         this.videoPlayers = [];
         this.objectCollection = new ObjectCollection();
 
-        this.objectCollection.fetch({
-          success: function(objs) {
-            objs.forEach(self.renderObject);
-          }
+        this.objectCollection.on("add", function(object) {
+          console.log(object);
+          self.renderObject(object);
         });
+        this.objectCollection.fetch();
+
         this.drawing = false;
 
         var cH = $('#crosshair-h'),
@@ -116,6 +117,8 @@ define(function(require) {
       this.objectCollection.create({
         label: attrs.label,
         sessionid: self.session.get('socid')
+      },{
+        wait: true
       });
 			$('#overlay, #overlay-back').fadeOut(500);
 			console.log('add object');
