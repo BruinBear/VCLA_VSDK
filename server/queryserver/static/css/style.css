@@ -55,5 +55,10 @@ body {
 div.videoDiv {
     cursor: crosshair;
 }
-
 /* end cross hair */
+
+/* bounding box */
+div.boundingBox {
+    border-style: solid 1px;
+}
+/* end bounding box*/

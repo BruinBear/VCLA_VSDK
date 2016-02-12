@@ -6,7 +6,7 @@ define(function(require) {
 
   var ObjectCollection = require('../collections/ObjectCollection');
   var VideoCollection = require('../collections/VideoCollection');
-
+  var BoxCollection = require('../collections/BoxCollection');
  	var VideoView = require('./VideoView');
 	var ObjectView = require('./ObjectView');
 
@@ -21,18 +21,36 @@ define(function(require) {
 			'click #submitObject': 'submitObject',
       'click #playButton': 'playPauseAll',
       'click .boundingBoxButton': 'newBoundingBox',
-      'click .videoDiv': 'handleVideoClick'
-		},
+      'click .videoDiv': 'videoClickHandle'
+    },
 
 		template: require('hbs!./../templates/SocView'),
+    boxTemplate: require('hbs!./../templates/BoundingBox'),
+
 
 		initialize: function () {
+        var self = this;
+        this.scrub = $("#scrub"),
+
         this.playing = false;
         this.subviews = [];
         this.videoPlayers = [];
+
+        this.videoCollection = new VideoCollection();
+  
         this.objectCollection = new ObjectCollection();
-        this.objectCollection.on('change', this.renderObjectList);
-        this.drawing = false;
+        this.objectCollection.on("add", function(object) {
+          console.log(object);
+          self.renderObject(object);
+        });
+
+        this.boxCollection = new BoxCollection();
+        this.boxCollection.on("add", function(box) {
+          console.log(box);
+          self.addBoxToJournal(box);
+        });
+
+        this.startDrawing = false;
 
         var cH = $('#crosshair-h'),
         cV = $('#crosshair-v');
@@ -42,22 +60,29 @@ define(function(require) {
 
     newSession: function () {
       var self = this;
-      self.session = new Session({'socid': 1});
+      self.session = new Session({'soc': 1});
       self.session.save(null, {
         error: function(err) {
           console.log(err);
         },
         success: function(data) {
-          console.log(data);
-          console.log('Start loading videos');
-          self.videoCollection = new VideoCollection();
-          self.videoCollection.url = '/api/videoswithsocid/'+data.get('socid');
+          /*  after session selection fetch
+              VideoCollection
+              ObjectCollection
+              BoundingBoxCollection
+           */
+          self.videoCollection.sessionId = data.get('soc');
+          self.objectCollection.sessionId = data.get('soc');
+          self.boxCollection.sessionId = data.get('soc');
+
           self.videoCollection.fetch({
             success: function(vids) {
               console.log(vids);
               self.renderVideos();
             }
           });
+          self.objectCollection.fetch();
+          self.boxCollection.fetch();
         }
       });
     },
@@ -82,11 +107,11 @@ define(function(require) {
 
     },
 
-        renderObject: function (obj) {
-            var objectList = this.$('.objects ol');
-            var view = new ObjectView({model: obj});
-            objectList.append(view.render().el);
-        },
+    renderObject: function (obj) {
+      var objectList = $('.objects ol');
+      var view = new ObjectView({model: obj});
+      objectList.append(view.render().el);
+    },
 
 		newObject: function () {
 			console.log('create object');
@@ -100,10 +125,15 @@ define(function(require) {
 		},
 
 		submitObject: function(e) {
+      var self = this;
 			e.preventDefault();
-            var obj = new ObjectModel(this.getFormData(this.$el.find('form')));
-            this.objectCollection.add(obj);
-            this.renderObject(obj);
+      var attrs = this.getFormData(this.$el.find('form'));
+      this.objectCollection.create({
+        label: attrs.label,
+        session: self.session.get('id')
+      },{
+        wait: true
+      });
 			$('#overlay, #overlay-back').fadeOut(500);
 			console.log('add object');
 		},
@@ -230,10 +260,37 @@ define(function(require) {
         newBoundingBox: function(e) {
             var self = this;
             console.log('adding bounding box');
-            self.drawing = true;
-        }
+            self.startDrawing = true;
+            self.objectSelected = self.objectCollection.get($(e.target).attr('objectId'));
+        },
 
+        videoClickHandle: function(e) {
+          var self = this;
+          console.log(e);
+          // start drawing
+          if(self.startDrawing) {
+            // create box
+            self.boxCollection.create({
+              videoid: $(e.target).attr('videoId'),
+              objectid: self.objectSelected.get('id'),
+              time: $('#scrub').val(),
+              x:0,
+              y:0,
+              xlen:0,
+              ylen:0
+            },{
+              wait: true
+            });
+            console.log('inserting bounding box');
+          } else {
+            console.log('idle');
+          }
+          
+        },
 
+        addBoxToJournal: function(box) {
+          console.log(box);
+        } 
 
 
 	});

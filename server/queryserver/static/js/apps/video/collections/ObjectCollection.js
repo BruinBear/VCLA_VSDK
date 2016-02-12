@@ -6,6 +6,9 @@ define(function (require) {
     var Object = require('./../models/Object');
 
     var ObjectCollection = Backbone.Collection.extend({
+        url: function() {
+          return '/api/objectswithsessionid/'+this.sessionId;
+        },
         model: Object
     });
 
