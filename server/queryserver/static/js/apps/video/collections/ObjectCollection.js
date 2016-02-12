@@ -7,7 +7,7 @@ define(function (require) {
 
     var ObjectCollection = Backbone.Collection.extend({
         url: function() {
-          return '/api/objectswithsessionid/'+this.sessionId;
+          return '/api/session/'+this.sessionId+'/object/';
         },
         model: Object
     });

@@ -321,3 +321,12 @@ def boxes_with_sessionid(request, sessionId):
     if request.method == 'GET':
         serializer = BoxSerializer(boxes, many=True)
         return Response(serializer.data)
+
+@api_view(['GET'])
+def session_video_boxes(request, sessionId, videoId):
+    boxes = Box.objects.filter(object__session__exact=sessionId).filter(object__video__exact==videoId)
+
+    if request.method == 'GET':
+        serializer = BoxSerializer(boxes, many=True)
+        return Response(serializer.data)
+

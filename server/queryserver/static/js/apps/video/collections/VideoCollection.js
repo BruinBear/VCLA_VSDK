@@ -3,7 +3,7 @@ define(function (require) {
 
 	var VideoCollection = Backbone.Collection.extend({
     url: function() {
-      return '/api/videoswithsocid/' + this.sessionId;
+      return '/api/soc/' + this.sessionId + '/video/';
     }
 	});
 
