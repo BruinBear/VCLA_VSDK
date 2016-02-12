@@ -1,13 +1,9 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from queryserver.models import Session, Soc, Video, Query, Object, Box
 from queryserver.serializers import SessionSerializer, SocSerializer, VideoSerializer, QuerySerializer, ObjectSerializer, BoxSerializer
 
-
-def home(request):
-    return render(request, 'index.html')
 
 @api_view(['GET', 'POST'])
 def session_list(request):
@@ -222,13 +218,13 @@ def box_detail(request, pk):
         box.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['POST'])
-def update_predicates_with_queryid(request, queryid):
+@api_view(['PUT'])
+def update_predicates_with_queryid(request, queryId):
     """
     Update predicates in a query with query id
     """
     try:
-	query = Query.objects.get(id=queryid)
+	query = Query.objects.get(id=queryId)
     except Query.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     query.predicates = request.data.get("predicates")
@@ -236,13 +232,13 @@ def update_predicates_with_queryid(request, queryid):
     serializer = QuerySerializer(query)
     return Response(serializer.data)
 
-@api_view(['POST'])
-def update_answer_with_queryid(request, queryid):
+@api_view(['PUT'])
+def update_answer_with_queryid(request, queryId):
     """
     Update the answer of a query with query id
     """
     try:
-        query = Query.objects.get(id=queryid)
+        query = Query.objects.get(id=queryId)
     except Query.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     query.answer = request.data.get("answer")
@@ -250,13 +246,13 @@ def update_answer_with_queryid(request, queryid):
     serializer = QuerySerializer(query)
     return Response(serializer.data)
 
-@api_view(['POST'])
-def update_comment_with_queryid(request, queryid):
+@api_view(['PUT'])
+def update_comment_with_queryid(request, queryId):
     """
     Update comment in a query with query id
     """
     try:
-        query = Query.objects.get(id=queryid)
+        query = Query.objects.get(id=queryId)
     except Query.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     query.comment = request.data.get("comment")
@@ -265,12 +261,12 @@ def update_comment_with_queryid(request, queryid):
     return Response(serializer.data)
 
 @api_view(['GET'])
-def queries_with_sessionid(request, sessionid):
+def queries_with_sessionid(request, sessionId):
     """
     Retrieve queries with seesion id.
     """
     try:
-        queries = Query.objects.filter(sessionid=sessionid)
+        queries = Query.objects.filter(session=sessionId)
     except Query.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -279,12 +275,12 @@ def queries_with_sessionid(request, sessionid):
         return Response(serializer.data)
 
 @api_view(['GET'])
-def videos_with_socid(request, socid):
+def videos_with_socid(request, socId):
     """
     Retrieve videos with soc id.
     """
     try:
-        videos = Video.objects.filter(socid=socid)
+        videos = Video.objects.filter(soc=socId)
     except Video.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -292,17 +288,31 @@ def videos_with_socid(request, socid):
         serializer = VideoSerializer(videos, many=True)
         return Response(serializer.data)
 
-@api_view(['POST'])
-def update_boxinfo_with_boxid(request, boxid):
+
+@api_view(['GET'])
+def objects_with_sessionid(request, sessionId):
     """
-    Update boxinfo in a box with box id
+    Retrieve objects with seesion id.
     """
     try:
-        box = Box.objects.get(id=boxid)
-    except Query.DoesNotExist:
+        objects = Object.objects.filter(session=sessionId)
+    except Object.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    box.boxinfo = request.data.get("boxinfo")
-    box.save()
-    serializer = BoxSerializer(box)
-    return Response(serializer.data)
 
+    if request.method == 'GET':
+        serializer = ObjectSerializer(objects, many=True)
+        return Response(serializer.data)
+
+@api_view(['GET'])
+def boxes_with_sessionid(request, sessionId):
+    """
+    Retrieve boxes with seesion id.
+    """
+    try:
+        boxes = Box.objects.filter(object__session__exact=sessionId)
+    except Box.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = BoxSerializer(boxes, many=True)
+        return Response(serializer.data)
