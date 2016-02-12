@@ -35,20 +35,20 @@ define(function(require) {
         this.playing = false;
         this.subviews = [];
         this.videoPlayers = [];
-        this.objectCollection = new ObjectCollection();
-        this.boxCollection = new BoxCollection();
 
+        this.videoCollection = new VideoCollection();
+  
+        this.objectCollection = new ObjectCollection();
         this.objectCollection.on("add", function(object) {
           console.log(object);
           self.renderObject(object);
         });
-        this.objectCollection.fetch();
 
+        this.boxCollection = new BoxCollection();
         this.boxCollection.on("add", function(box) {
           console.log(box);
           self.addBoxToJournal(box);
         });
-        this.boxCollection.fetch();
 
         this.startDrawing = false;
 
@@ -60,26 +60,29 @@ define(function(require) {
 
     newSession: function () {
       var self = this;
-      self.session = new Session({'socid': 1});
+      self.session = new Session({'soc': 1});
       self.session.save(null, {
         error: function(err) {
           console.log(err);
         },
         success: function(data) {
-          /*  after session selection
-              we need to intialize 3 collections
+          /*  after session selection fetch
               VideoCollection
               ObjectCollection
               BoundingBoxCollection
            */
-          self.videoCollection = new VideoCollection();
-          self.videoCollection.url = '/api/videoswithsocid/'+data.get('socid');
+          self.videoCollection.sessionId = data.get('soc');
+          self.objectCollection.sessionId = data.get('soc');
+          self.boxCollection.sessionId = data.get('soc');
+
           self.videoCollection.fetch({
             success: function(vids) {
               console.log(vids);
               self.renderVideos();
             }
           });
+          self.objectCollection.fetch();
+          self.boxCollection.fetch();
         }
       });
     },
@@ -127,7 +130,7 @@ define(function(require) {
       var attrs = this.getFormData(this.$el.find('form'));
       this.objectCollection.create({
         label: attrs.label,
-        sessionid: self.session.get('socid')
+        session: self.session.get('id')
       },{
         wait: true
       });
