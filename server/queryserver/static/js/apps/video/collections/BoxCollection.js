@@ -6,7 +6,18 @@ define(function (require) {
     var Box = require('./../models/Box');
 
     var BoxCollection = Backbone.Collection.extend({
-        url: '/api/box/',
+        url: function() {
+          return '/api/session/' + this.sessionId +'/video/'+ this.videoId + '/box/';
+        },
+        comparator: function(a, b) {
+          if(a.time < b.time) {
+            return -1;
+          } else if (a.time > b.time) {
+            return 1;
+          } else {
+            return 0;
+          }
+        },
         model: Box
     });
 
