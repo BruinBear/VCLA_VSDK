@@ -1,156 +1,162 @@
-define(function(require) {
-	var Backbone = require('Backbone');
+define(function (require) {
+    var Backbone = require('Backbone');
 
-  var Session = require('../models/Session');
-  var ObjectModel = require('../models/Object');
+    var Session = require('../models/Session');
+    var ObjectModel = require('../models/Object');
 
-  var ObjectCollection = require('../collections/ObjectCollection');
-  var VideoCollection = require('../collections/VideoCollection');
-  var BoxCollection = require('../collections/BoxCollection');
- 	var VideoView = require('./VideoView');
-	var ObjectView = require('./ObjectView');
+    var ObjectCollection = require('../collections/ObjectCollection');
+    var VideoCollection = require('../collections/VideoCollection');
+    var BoxCollection = require('../collections/BoxCollection');
+    var VideoView = require('./VideoView');
+    var ObjectView = require('./ObjectView');
 
-  var SocView = Backbone.View.extend({
-		tagName: 'div',
+    var SocView = Backbone.View.extend({
+        tagName: 'div',
 
-		events: {
-      'click #newSession': 'newSession',
-      'click #loadSession': 'loadSession',
-			'click #newObject': 'newObject',
-			'click #cancelObject': 'cancelObject',
-			'click #submitObject': 'submitObject',
-      'click #playButton': 'playPauseAll',
-      'click .boundingBoxButton': 'newBoundingBox',
-      'click .videoDiv': 'videoClickHandle'
-    },
-
-		template: require('hbs!./../templates/SocView'),
-    boxTemplate: require('hbs!./../templates/BoundingBox'),
-
-
-		initialize: function () {
-        var self = this;
-        this.scrub = $("#scrub"),
-
-        this.playing = false;
-        this.subviews = [];
-        this.videoPlayers = [];
-
-        this.videoCollection = new VideoCollection();
-  
-        this.objectCollection = new ObjectCollection();
-        this.objectCollection.on("add", function(object) {
-          console.log(object);
-          self.renderObject(object);
-        });
-
-        this.boxCollection = new BoxCollection();
-        this.boxCollection.on("add", function(box) {
-          console.log(box);
-          self.addBoxToJournal(box);
-        });
-
-        this.startDrawing = false;
-
-        var cH = $('#crosshair-h'),
-        cV = $('#crosshair-v');
-        this.cH = cH;
-        this.cV = cV;
-    },
-
-    newSession: function () {
-      var self = this;
-      self.session = new Session({'soc': 1});
-      self.session.save(null, {
-        error: function(err) {
-          console.log(err);
+        events: {
+            'click #newSession': 'newSession',
+            'click #loadSession': 'loadSession',
+            'click #newObject': 'newObject',
+            'click #cancelObject': 'cancelObject',
+            'click #submitObject': 'submitObject',
+            'click #playButton': 'playPauseAll',
+            'click .boundingBoxButton': 'newBoundingBox',
+            'click .videoDiv': 'videoClickHandle'
         },
-        success: function(data) {
-          /*  after session selection fetch
-              VideoCollection
-              ObjectCollection
-              BoundingBoxCollection
-           */
-          self.videoCollection.sessionId = data.get('soc');
-          self.objectCollection.sessionId = data.get('soc');
-          self.boxCollection.sessionId = data.get('soc');
 
-          self.videoCollection.fetch({
-            success: function(vids) {
-              console.log(vids);
-              self.renderVideos();
-            }
-          });
-          self.objectCollection.fetch();
-          self.boxCollection.fetch();
-        }
-      });
-    },
+        template: require('hbs!./../templates/SocView'),
+        boxTemplate: require('hbs!./../templates/BoundingBox'),
 
-    loadSession: function () {
 
-    },
+        initialize: function () {
+            var self = this;
+            this.scrub = $("#scrub"),
 
-		render: function () {
-      var me = this;
-			this.$el.html(this.template());
-      return this;
-		},
+                this.playing = false;
+            this.subviews = [];
+            this.videoPlayers = [];
 
-    renderVideos: function () {
-      var self = this;
-      var videos = this.$('.videos');
-      self.videoCollection.forEach(function (video) {
-        var view = new VideoView({model: video});
-        videos.append(view.render().el);
-      }, this);
+            this.videoCollection = new VideoCollection();
 
-    },
+            this.objectCollection = new ObjectCollection();
+            this.objectCollection.on("add", function (object) {
+                console.log(object);
+                self.renderObject(object);
+            });
 
-    renderObject: function (obj) {
-      var objectList = $('.objects ol');
-      var view = new ObjectView({model: obj});
-      objectList.append(view.render().el);
-    },
+            this.boxCollection = new BoxCollection();
+            this.boxCollection.on("add", function (box) {
+                console.log(box);
+                self.addBoxToJournal(box);
+            });
 
-		newObject: function () {
-			console.log('create object');
-			$('#overlay, #overlay-back').fadeIn(500);
-		},
+            this.startDrawing = false;
 
-		cancelObject: function(e) {
-			e.preventDefault();
-			console.log('cancel object');
-			$('#overlay, #overlay-back').fadeOut(500);
-		},
+            var cH = $('#crosshair-h'),
+                cV = $('#crosshair-v');
+            this.cH = cH;
+            this.cV = cV;
+        },
 
-		submitObject: function(e) {
-      var self = this;
-			e.preventDefault();
-      var attrs = this.getFormData(this.$el.find('form'));
-      this.objectCollection.create({
-        label: attrs.label,
-        session: self.session.get('id')
-      },{
-        wait: true
-      });
-			$('#overlay, #overlay-back').fadeOut(500);
-			console.log('add object');
-		},
+        newSession: function () {
+            var self = this;
+            self.session = new Session({
+                'soc': 1
+            });
+            self.session.save(null, {
+                error: function (err) {
+                    console.log(err);
+                },
+                success: function (data) {
+                    /*  after session selection fetch
+                        VideoCollection
+                        ObjectCollection
+                        BoundingBoxCollection
+                     */
+                    self.videoCollection.sessionId = data.get('soc');
+                    self.objectCollection.sessionId = data.get('soc');
+                    self.boxCollection.sessionId = data.get('soc');
 
-		getFormData: function(form) {
-			var unindexed_array = form.serializeArray();
-			var indexed_array = {};
+                    self.videoCollection.fetch({
+                        success: function (vids) {
+                            console.log(vids);
+                            self.renderVideos();
+                        }
+                    });
+                    self.objectCollection.fetch();
+                    self.boxCollection.fetch();
+                }
+            });
+        },
 
-			$.map(unindexed_array, function(n, i){
-				indexed_array[n.name] = n.value;
-			});
+        loadSession: function () {
 
-			return indexed_array;
-		},
+        },
+
+        render: function () {
+            var me = this;
+            this.$el.html(this.template());
+            return this;
+        },
+
+        renderVideos: function () {
+            var self = this;
+            var videos = this.$('.videos');
+            self.videoCollection.forEach(function (video) {
+                var view = new VideoView({
+                    model: video
+                });
+                videos.append(view.render().el);
+            }, this);
+
+        },
+
+        renderObject: function (obj) {
+            var objectList = $('.objects ol');
+            var view = new ObjectView({
+                model: obj
+            });
+            objectList.append(view.render().el);
+        },
+
+        newObject: function () {
+            console.log('create object');
+            $('#overlay, #overlay-back').fadeIn(500);
+        },
+
+        cancelObject: function (e) {
+            e.preventDefault();
+            console.log('cancel object');
+            $('#overlay, #overlay-back').fadeOut(500);
+        },
+
+        submitObject: function (e) {
+            var self = this;
+            e.preventDefault();
+            var attrs = this.getFormData(this.$el.find('form'));
+            this.objectCollection.create({
+                label: attrs.label,
+                session: self.session.get('id')
+            }, {
+                wait: true
+            });
+            $('#overlay, #overlay-back').fadeOut(500);
+            console.log('add object');
+        },
+
+        getFormData: function (form) {
+            var unindexed_array = form.serializeArray();
+            var indexed_array = {};
+
+            $.map(unindexed_array, function (n, i) {
+                indexed_array[n.name] = n.value;
+            });
+
+            return indexed_array;
+        },
 
         // Check https://bocoup.com/weblog/html5-video-synchronizing-playback-of-two-videos
-        bindVideos: function() {
+        bindVideos: function () {
             var videos = this.videoPlayers;
             var scrub = $("#scrub"),
                 loadCount = 0,
@@ -168,9 +174,9 @@ define(function(require) {
                     // Once both items are loaded, sync events
                     if (++loadCount === videos.length) {
                         // sync progress bar
-                        window.setInterval( function() {
+                        window.setInterval(function () {
                             scrub.val(videos[0].currentTime());
-                        }, 1000 );
+                        }, 1000);
                         // Iterate all events and trigger them on the video B
                         // whenever they occur on the video A
                         events.forEach(function (event) {
@@ -181,9 +187,9 @@ define(function(require) {
                                         return;
                                     }
                                     videos.forEach(function (b) {
-                                        if(b.video.id!==videos[0].video.id) {
+                                        if (b.video.id !== videos[0].video.id) {
                                             b.emit("timeupdate");
-					}
+                                        }
                                     });
                                     // update scrubber
                                     scrub.val(this.currentTime());
@@ -192,16 +198,16 @@ define(function(require) {
                                 if (event === "seeking") {
                                     var ct = this.currentTime();
                                     videos.forEach(function (b) {
-                                        if(b.video.id !== videos[0].video.id) {
+                                        if (b.video.id !== videos[0].video.id) {
                                             b.currentTime(ct);
-					}
+                                        }
                                     });
                                 }
                                 if (event === "play" || event === "pause") {
                                     videos.forEach(function (b) {
-                                        if(b.video.id !== videos[0].video.id) {
+                                        if (b.video.id !== videos[0].video.id) {
                                             b[event]();
-					}
+                                        }
                                     });
                                 }
                             });
@@ -222,7 +228,7 @@ define(function(require) {
             // the video is resync'ed.
             function sync() {
                 videos.forEach(function (b, time) {
-                    if (b.video.id!==videos[0].video.id && b.media.readyState === 4) {
+                    if (b.video.id !== videos[0].video.id && b.media.readyState === 4) {
                         b.currentTime(videos[0].currentTime());
                     }
                 });
@@ -231,69 +237,67 @@ define(function(require) {
             sync();
         },
 
-        playPauseAll: function(e) {
+        playPauseAll: function (e) {
             var self = this;
-            if(self.videoPlayers.length === 0) { // bind videos this only once
+            if (self.videoPlayers.length === 0) { // bind videos this only once
                 var toAdd = self.videoCollection.length;
                 var added = 0;
-                self.videoCollection.forEach(function(v) {
+                self.videoCollection.forEach(function (v) {
                     added++;
-                    self.videoPlayers.push(Popcorn('#video'+ v.get('id')));
-                    if(added === toAdd) {
+                    self.videoPlayers.push(Popcorn('#video' + v.get('id')));
+                    if (added === toAdd) {
                         self.bindVideos();
                     }
                 });
             }
             e.preventDefault();
-            if(this.playing) {
+            if (this.playing) {
                 self.videoCollection.forEach(function (video) {
-                    document.getElementById('video'+video.get('id')).pause();
+                    document.getElementById('video' + video.get('id')).pause();
                 }, this);
             } else {
                 self.videoCollection.forEach(function (video) {
-                    document.getElementById('video'+video.get('id')).play();
+                    document.getElementById('video' + video.get('id')).play();
                 }, this);
             }
             this.playing = !this.playing;
         },
 
-        newBoundingBox: function(e) {
+        newBoundingBox: function (e) {
             var self = this;
             console.log('adding bounding box');
             self.startDrawing = true;
             self.objectSelected = self.objectCollection.get($(e.target).attr('objectId'));
         },
 
-        videoClickHandle: function(e) {
-          var self = this;
-          console.log(e);
-          // start drawing
-          if(self.startDrawing) {
-            // create box
-            self.boxCollection.create({
-              videoid: $(e.target).attr('videoId'),
-              objectid: self.objectSelected.get('id'),
-              time: $('#scrub').val(),
-              x:0,
-              y:0,
-              xlen:0,
-              ylen:0
-            },{
-              wait: true
-            });
-            console.log('inserting bounding box');
-          } else {
-            console.log('idle');
-          }
-          
+        videoClickHandle: function (e) {
+            var self = this;
+            console.log(e);
+            // start drawing
+            if (self.startDrawing) {
+                // create box
+                self.boxCollection.create({
+                    videoid: $(e.target).attr('videoId'),
+                    objectid: self.objectSelected.get('id'),
+                    time: $('#scrub').val(),
+                    x: 0,
+                    y: 0,
+                    xlen: 0,
+                    ylen: 0
+                }, {
+                    wait: true
+                });
+                console.log('inserting bounding box');
+            } else {
+                console.log('idle');
+            }
+
         },
 
-        addBoxToJournal: function(box) {
-          console.log(box);
-        } 
+        addBoxToJournal: function (box) {
+            console.log(box);
+        }
+    });
 
-
-	});
-
-	return SocView;
+    return SocView;
 });
