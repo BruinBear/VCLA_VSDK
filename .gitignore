@@ -1,4 +1,5 @@
 **/*.DS_store
 *.log
 *.pyc
-server/env
+./server/env
+./server/queryserver/static/components
