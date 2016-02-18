@@ -321,12 +321,24 @@ def boxes_with_sessionid(request, sessionId):
     if request.method == 'GET':
         serializer = BoxSerializer(boxes, many=True)
         return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = BoxSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
+@api_view(['GET','POST'])
 def session_video_boxes(request, sessionId, videoId):
-    boxes = Box.objects.filter(object__session__exact=sessionId).filter(object__video__exact==videoId)
+    boxes = Box.objects.filter(object__session__exact=sessionId).filter(video_id=videoId)
 
     if request.method == 'GET':
         serializer = BoxSerializer(boxes, many=True)
         return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = BoxSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
