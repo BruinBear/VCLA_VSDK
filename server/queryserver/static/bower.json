@@ -1,0 +1,14 @@
+{
+  "name": "VCLA-VSDK",
+  "version": "0.0.1",
+  "dependencies": {
+    "underscore": "^1.8.3",
+    "jquery": "^2.2.0",
+    "backbone": "~1.0.0",
+    "bootstrap": "^3.3.6",
+    "requirejs": "~2.1.5",
+    "require-handlebars-plugin": "~0.4.0",
+    "animate.css": "latest",
+    "jquery-ui": "^1.11.4"
+  }
+}

@@ -29,8 +29,8 @@ class Object(models.Model):
 class Box(models.Model):
     object = models.ForeignKey(Object)
     video = models.ForeignKey(Video)
-    time = models.IntegerField(default=0)
-    x = models.IntegerField(default=0)
-    y = models.IntegerField(default=0)
-    xlen = models.IntegerField(default=0)
-    ylen = models.IntegerField(default=0)
+    time = models.FloatField(default=0)
+    x = models.FloatField(default=0)
+    y = models.FloatField(default=0)
+    xlen = models.FloatField(default=0)
+    ylen = models.FloatField(default=0)
