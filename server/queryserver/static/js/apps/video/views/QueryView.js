@@ -2,22 +2,35 @@
 define(function (require) {
     var Backbone = require('Backbone');
 
+    var OntConfig = require('../models/OntConfig');
+
     var QueryView = Backbone.View.extend({
 
     	tagName: "div",
 
-    	events: {
-    		'click #q-attr-o': '' 
-    	},
-
     	template: require('hbs!./../templates/QueryView'),
 
     	initialize: function () {
-    		var objectsDropdowns = {};
+    		this.objectsDropdowns = {};
+    		this.objectIdLabel = {};
+    		this.ontConfig = new OntConfig();
+    		this.objectAttr = {};
+    		this.objectRel = {};
+    		this.labelArray = [];
+    		var relDict = this.ontConfig.getRelDict();
+    		this.objectRel = {};
+    		this.objectCollection.foreach(function (o) {
+    			this.objectIdLabel[o.get('id')] = o.get('label');
+    			if (!(o.get('label') in this.objectAttr)) {
+    				this.objectAttr[o.get('label')] = this.ontConfig.get('object_attributes')[o.get('label')];
+    			}
+    			this.labelArray.push(o.get('label'));
+    		});
+
     		createObjectsDropdown('q-attr-o');
   			createObjectsDropdown('q-rel-o1');
   			createObjectsDropdown('q-rel-o2');
-
+  			$('#q-rel').hide();
     	},
 
     	render: function() {
@@ -46,7 +59,7 @@ define(function (require) {
         			'aria-labelledby': cid+'-objects-dropdown-btn',
       			})
     		);
-    		objectsDropdowns[cid] =
+    		this.objectsDropdowns[cid] =
       			$('#'+cid+'-objects-dropdown-ul').on('click', 'a', function(){
         			var oname = $(this).attr('data-oname');
         			$('#'+cid+'-objects-dropdown-dsp-span')
@@ -56,20 +69,81 @@ define(function (require) {
   		}
 
   		updateObjectsDropdown: function(cid) {
-    		objectsDropdowns[cid].html('');
-    		objectsDropdowns[cid].append(
+    		this.objectsDropdowns[cid].html('');
+    		this.objectsDropdowns[cid].append(
       			$('<li>', {class: "dropdown-header"}).html('Select an object')
    			);
-    		for (var x in objects)
-      			objectsDropdowns[cid].append(
+    		this.objectCollection.foreach(function (o) {
+      			this.objectsDropdowns[cid].append(
         			$('<li>').append(
           				$('<a>', {
             				class: 'msee-objects-dropdown-a',
             				href: '#',
-            				'data-oname': x,
-          				}).html(x)
+            				'data-oname': o.get('id'),
+          				}).html(o.get('id'))
         			)
       			);
+      		});
+    	}
+
+    	$("#q-attr-o").on('click', '.msee-objects-dropdown-a', function(){
+    		var ot = this.objectIdLabel[$(this).attr('data-oname')];
+    		for (var i = 0; i < this.objectAttr[ot].length; ++i)
+      			$('#q-attr .list-group').append(
+        			$('<a>', {
+          				class: 'list-group-item',
+          				href: '#',
+        			}).html(this.objectAttr[ot][i])
+      			);
+    	});
+
+    	$(".q-rel-o").on('click', '.msee-objects-dropdown-a', function(){
+    		var on1 = $('#q-rel-o1-objects-dropdown-dsp-span').attr('data-oname');
+    		var on2 = $('#q-rel-o2-objects-dropdown-dsp-span').attr('data-oname');
+    		if (on1 && on2) {
+      			var ot = objects[on1].objType+' '+objects[on2].objType;
+      			for (var i = 0; i < oRel[ot].length; ++i)
+        			$('#q-rel .list-group').append(
+          				$('<a>', {
+            				class: 'list-group-item',
+            				href: '#',
+          				}).html(oRel[ot][i])
+        			);
     		}
+    	});
+
+    	appendQuestion: function(q) {
+    		$('#history-pool').append(
+      			$('<div>', {
+        			class: 'history-entry'
+      			}).append(
+        			$('<span>', {
+          				class: 'history-entry-q'
+        			}).html('Q: '+q)
+      			).append(
+        			$('<span>', {
+          				class: 'history-entry-a'
+        			}).html('A: Yes')
+      			).hide().fadeIn('slow')
+    		);
+    	}
+
+    	$('#q-type-radios input').change(function(){
+    		$('.q-info').hide();
+    		$('#'+$(this).attr('data-q')).show();
+  		});
+
+  		$('#q-attr').on('click', '.list-group-item', function() {
+    		var q = $('#q-attr #q-attr-o-objects-dropdown-dsp-span').attr('data-oname') + ' ' + $(this).html() + '?';
+    		appendQuestion(q);
+  		});
+
+  		$('#q-rel').on('click', '.list-group-item', function() {
+    		var q = $('#q-rel-o1-objects-dropdown-dsp-span').attr('data-oname')
+      			+ ' ' + $(this).html() + ' '
+      			+ $('#q-rel-o2-objects-dropdown-dsp-span').attr('data-oname') + '?';
+    		appendQuestion(q);
+  		});
+
     });
 }
