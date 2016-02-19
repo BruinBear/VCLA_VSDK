@@ -134,8 +134,21 @@ define(function(require) {
       var self= this;
       var boxEl = $(self.boxTemplate(boxes));
       var boxUI = $('[boxPartyId="'+boxes.vid+'"]').append(boxEl);
-      self.$(boxEl).resizable().draggable({
-        containment: 'parent'
+      self.$(boxEl).resizable({
+        stop: function(e, ui) {
+          var x = $(e.target).offset().left;
+          var y = $(e.target).offset().top;
+          var xlen = $(e.target).width;
+          var ylen = $(e.target).height;
+        }
+      }).draggable({
+        containment: 'parent',
+        start: function(e, ui) {
+          console.log(e);
+        },
+        stop: function(e, ui) {
+          console.log(e)
+        }
       });
     },
 
