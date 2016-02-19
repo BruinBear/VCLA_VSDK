@@ -2,5 +2,5 @@
 *.log
 *.pyc
 server/env
-server/queryserver/static/components
+server/queryserver/static/public/components
 server/server/settings.py

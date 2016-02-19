@@ -10,12 +10,15 @@ require.config({
 			exports: '$'
 		},
 
+		'jQueryUI': {
+			deps: ['jQuery']
+		},
 		'Underscore': {
 			exports: '_'
 		},
 
 		'Backbone': {
-			deps: ['Underscore', 'jQuery'],
+			deps: ['Underscore', 'jQuery', 'jQueryUI'],
 			exports: 'Backbone'
 		},
 
@@ -30,14 +33,15 @@ require.config({
 	},
 
 	paths: {
-		jQuery: './../components/jquery/jquery',
-		Underscore: './../components/underscore/underscore',
-		underscore: './../components/require-handlebars-plugin/hbs/underscore',
-		Backbone: './../components/backbone/backbone',
-		handlebars: './../components/require-handlebars-plugin/Handlebars',
-		hbs: './../components/require-handlebars-plugin/hbs',
-		i18nprecompile : './../components/require-handlebars-plugin/hbs/i18nprecompile',
-		json2 : './../components/require-handlebars-plugin/hbs/json2'
+		jQuery: './../public/components/jquery/dist/jquery',
+		jQueryUI: './../public/components/jquery-ui/jquery-ui.min',
+		Underscore: './../public/components/underscore/underscore',
+		underscore: './../public/components/require-handlebars-plugin/hbs/underscore',
+		Backbone: './../public/components/backbone/backbone',
+		handlebars: './../public/components/require-handlebars-plugin/Handlebars',
+		hbs: './../public/components/require-handlebars-plugin/hbs',
+		i18nprecompile : './../public/components/require-handlebars-plugin/hbs/i18nprecompile',
+		json2 : './../public/components/require-handlebars-plugin/hbs/json2'
 	}
 });
 
