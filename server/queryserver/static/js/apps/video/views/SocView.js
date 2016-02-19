@@ -11,17 +11,17 @@ define(function(require) {
 	var ObjectView = require('./ObjectView');
 
   var SocView = Backbone.View.extend({
-		tagName: 'div',
+    tagName: 'div',
 
-		events: {
-      'click #newSession': 'newSession',
-      'click #loadSession': 'loadSession',
-			'click #newObject': 'newObject',
-      'click #cancelObject': 'cancelObject',
-			'click #submitObject': 'submitObject',
-      'click #playButton': 'playPauseAll',
-      'click .boundingBoxButton': 'newBoundingBox',
-      'click video': 'videoClickHandle'
+    events: {
+        'click #newSession': 'newSession',
+	'click #loadSession': 'loadSession',
+	'click #newObject': 'newObject',
+	'click #cancelObject': 'cancelObject',
+	'click #submitObject': 'submitObject',
+	'click #playButton': 'playPauseAll',
+	'click .boundingBoxButton': 'newBoundingBox',
+        'click video': 'videoClickHandle'
     },
 
 		template: require('hbs!./../templates/SocView'),
@@ -137,18 +137,18 @@ define(function(require) {
       objectList.append(view.render().el);
     },
 
-		newObject: function () {
-			console.log('create object');
-			$('#overlay, #overlay-back').fadeIn(500);
-		},
+    newObject: function () {
+        console.log('create object');
+        $('#overlay, #overlay-back').fadeIn(500);
+    },
 
-		cancelObject: function(e) {
-			e.preventDefault();
-			console.log('cancel object');
-			$('#overlay, #overlay-back').fadeOut(500);
-		},
+    cancelObject: function(e) {
+        e.preventDefault();
+        console.log('cancel object');
+        $('#overlay, #overlay-back').fadeOut(500);
+    },
 
-		submitObject: function(e) {
+    submitObject: function(e) {
       var self = this;
 			e.preventDefault();
       var attrs = this.getFormData(this.$el.find('form'));
@@ -158,9 +158,9 @@ define(function(require) {
       },{
         wait: true
       });
-			$('#overlay, #overlay-back').fadeOut(500);
-			console.log('add object');
-		},
+      $('#overlay, #overlay-back').fadeOut(500);
+      console.log('add object');
+    },
 
     getTime: function() {
       var self = this;
@@ -168,16 +168,16 @@ define(function(require) {
     },
 
 
-		getFormData: function(form) {
-			var unindexed_array = form.serializeArray();
-			var indexed_array = {};
+    getFormData: function(form) {
+      var unindexed_array = form.serializeArray();
+      var indexed_array = {};
 
-			$.map(unindexed_array, function(n, i){
-				indexed_array[n.name] = n.value;
-			});
+      $.map(unindexed_array, function(n, i){
+        indexed_array[n.name] = n.value;
+      });
 
-			return indexed_array;
-		},
+      return indexed_array;
+    },
         
         // Check https://bocoup.com/weblog/html5-video-synchronizing-playback-of-two-videos
     bindVideos: function () {
@@ -251,8 +251,9 @@ define(function(require) {
             // frequently as the browser would allow,
             // the video is resync'ed.
             function sync() {
+		var syncedTime = videos[0].currentTime();
                 videos.forEach(function (b, time) {
-                    if (b.video.id !== videos[0].video.id && b.media.readyState === 4) {
+                    if (Math.abs(b.currentTime() - syncedTime) > 0.1 && b.media.readyState === 4) {
                         b.currentTime(videos[0].currentTime());
                     }
                 });
@@ -274,7 +275,6 @@ define(function(require) {
                     }
                 });
             }
-            e.preventDefault();
             if(this.playing) {
                 self.videoCollection.forEach(function (video) {
                     document.getElementById('video' + video.get('id')).pause();
