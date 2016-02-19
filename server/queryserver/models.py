@@ -28,6 +28,7 @@ class Object(models.Model):
 
 class Box(models.Model):
     object = models.ForeignKey(Object)
+    session = models.ForeignKey(Session, default="")
     video = models.ForeignKey(Video)
     time = models.FloatField(default=0)
     x = models.FloatField(default=0)

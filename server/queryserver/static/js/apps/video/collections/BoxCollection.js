@@ -7,7 +7,7 @@ define(function (require) {
 
     var BoxCollection = Backbone.Collection.extend({
         url: function() {
-          return '/api/session/' + this.sessionId +'/video/'+ this.videoId + '/box/';
+          return '/api/session/'+this.sid+'/object/'+this.oid+'/video/'+this.vid+'/box/';
         },
         comparator: function(a, b) {
           if(a.time < b.time) {
@@ -17,6 +17,11 @@ define(function (require) {
           } else {
             return 0;
           }
+        },
+        bootstrap: function(sid, oid, vid) {
+          this.sid = sid;
+          this.oid = oid;
+          this.vid = vid;
         },
         model: Box
     });

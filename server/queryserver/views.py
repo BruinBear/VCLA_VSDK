@@ -329,8 +329,8 @@ def boxes_with_sessionid(request, sessionId):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET','POST'])
-def session_video_boxes(request, sessionId, videoId):
-    boxes = Box.objects.filter(object__session__exact=sessionId).filter(video_id=videoId)
+def session_matched_boxes(request, sessionId, objectId, videoId):
+    boxes = Box.objects.filter(session_id=sessionId).filter(object_id=objectId).filter(video_id=videoId)
 
     if request.method == 'GET':
         serializer = BoxSerializer(boxes, many=True)
