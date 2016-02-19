@@ -26,7 +26,14 @@ define(function (require) {
     			}
     			this.labelArray.push(o.get('label'));
     		});
-
+    		for (var i = 0; i < this.labelArray.length; ++i) {
+    			for (var j = 0; j < this.labelArray.length; ++j) {
+    				if (!(this.labelArray[i]+' '+this.labelArray[j] in this.objectRel)) {
+    					this.objectRel[this.labelArray[i]+' '+this.labelArray[j]] 
+    						= relDict[this.labelArray[i]+' '+this.labelArray[j]];
+    				}
+    			}
+    		}
     		createObjectsDropdown('q-attr-o');
   			createObjectsDropdown('q-rel-o1');
   			createObjectsDropdown('q-rel-o2');
@@ -101,13 +108,13 @@ define(function (require) {
     		var on1 = $('#q-rel-o1-objects-dropdown-dsp-span').attr('data-oname');
     		var on2 = $('#q-rel-o2-objects-dropdown-dsp-span').attr('data-oname');
     		if (on1 && on2) {
-      			var ot = objects[on1].objType+' '+objects[on2].objType;
-      			for (var i = 0; i < oRel[ot].length; ++i)
+      			var ot = this.objectIdLabel[on1]+' '+this.objectIdLabel[on2];
+      			for (var i = 0; i < this.objectRel[ot].length; ++i)
         			$('#q-rel .list-group').append(
           				$('<a>', {
             				class: 'list-group-item',
             				href: '#',
-          				}).html(oRel[ot][i])
+          				}).html(this.objectRel[ot][i])
         			);
     		}
     	});
