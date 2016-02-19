@@ -13,7 +13,7 @@ urlpatterns = [
     url(r'^api/session/(?P<sessionId>[0-9]+)/object/$', qv.objects_with_sessionid),
     url(r'^api/session/(?P<sessionId>[0-9]+)/query/$', qv.queries_with_sessionid),
     url(r'^api/session/(?P<sessionId>[0-9]+)/box/$', qv.boxes_with_sessionid),   
-    url(r'^api/session/(?P<sessionId>[0-9]+)/video/(?P<videoId>[0-9]+)/box/', qv.session_video_boxes),
+    url(r'^api/session/(?P<sessionId>[0-9]+)/object/(?P<objectId>[0-9]+)/video/(?P<videoId>[0-9]+)/box/', qv.session_matched_boxes),
 
     url(r'^api/soc/$', qv.soc_list),
     url(r'^api/soc/(?P<pk>[0-9]+)/$', qv.soc_detail),

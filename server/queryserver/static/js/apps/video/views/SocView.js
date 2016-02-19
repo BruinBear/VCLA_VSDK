@@ -1,5 +1,5 @@
 define(function(require) {
-	var Backbone = require('Backbone');
+  var Backbone = require('Backbone');
 
   var Session = require('../models/Session');
   var ObjectModel = require('../models/Object');
@@ -7,28 +7,29 @@ define(function(require) {
   var ObjectCollection = require('../collections/ObjectCollection');
   var VideoCollection = require('../collections/VideoCollection');
   var BoxCollection = require('../collections/BoxCollection');
- 	var VideoView = require('./VideoView');
-	var ObjectView = require('./ObjectView');
+  var VideoView = require('./VideoView');
+  var ObjectView = require('./ObjectView');
 
   var SocView = Backbone.View.extend({
     tagName: 'div',
 
     events: {
-        'click #newSession': 'newSession',
-	'click #loadSession': 'loadSession',
-	'click #newObject': 'newObject',
-	'click #cancelObject': 'cancelObject',
-	'click #submitObject': 'submitObject',
-	'click #playButton': 'playPauseAll',
-	'click .boundingBoxButton': 'newBoundingBox',
-        'click video': 'videoClickHandle'
+      'click #newSession': 'newSession',
+      'click #loadSession': 'loadSession',
+      'click #newObject': 'newObject',
+      'click #cancelObject': 'cancelObject',
+      'click #submitObject': 'submitObject',
+      'click #playButton': 'playAll',
+      'click #pauseButton': 'pauseAll',
+      'click .boundingBoxButton': 'newBoundingBox',
+      'click video': 'videoClickHandle'
     },
 
-		template: require('hbs!./../templates/SocView'),
+    template: require('hbs!./../templates/SocView'),
     boxTemplate: require('hbs!./../templates/BoundingBox'),
 
 
-		initialize: function () {
+    initialize: function () {
         var self = this;
         this.scrub = $("#scrub"),
 
@@ -44,14 +45,12 @@ define(function(require) {
           self.renderObject(object);
         });
 
+        // fetch box
+        this.boxUIPool = [];
         this.startDrawing = false;
 
-        var cH = $('#crosshair-h'),
-        cV = $('#crosshair-v');
-        this.cH = cH;
-        this.cV = cV;
-
         // box states
+        this.preload = 0;
         this.clickOid = null;
         this.clickVid = null;
         this.addState = 0;
@@ -67,22 +66,7 @@ define(function(require) {
           console.log(err);
         },
         success: function(data) {
-          /*  after session selection fetch
-              VideoCollection
-              ObjectCollection
-              BoundingBoxCollection
-           */
-          self.videoCollection.sessionId = data.get('soc');
-          self.objectCollection.sessionId = data.get('soc');
-
-          self.videoCollection.fetch({
-            success: function(vids) {
-              console.log(vids);
-              self.renderVideos();
-              vids.fetchBoxes();// populate boxes for each video
-            }
-          });
-          self.objectCollection.fetch();
+          self.afterSessionLoaded(data);
         }
       });
     },
@@ -95,31 +79,71 @@ define(function(require) {
           console.log(err);
         },
         success: function(data) {
-          /*  after session selection fetch
-              VideoCollection
-              ObjectCollection
-              BoundingBoxCollection
-           */
-          self.videoCollection.sessionId = data.get('soc');
-          self.objectCollection.sessionId = data.get('soc');
-
-          self.videoCollection.fetch({
-            success: function(vids) {
-              console.log(vids);
-              self.renderVideos();
-              vids.fetchBoxes();// populate boxes for each video
-            }
-          });
-          self.objectCollection.fetch();
+          self.afterSessionLoaded(data);
         }
       });
     },
 
-		render: function () {
+    afterSessionLoaded: function(data) {
+      var self = this;
+      self.videoCollection.sessionId = data.get('soc');
+      self.objectCollection.sessionId = data.get('soc');
+      self.videoCollection.fetch({
+        success: function(vids) {
+          self.renderVideos();
+          self.tryLoadBoxes();
+        }
+      });
+      self.objectCollection.fetch({
+        success: function(objects) {
+          self.tryLoadBoxes();
+        }
+      });
+    },
+
+    getUIBoxKey: function(oid, vid) {
+      return 'o'+oid+'v'+vid;
+    },
+
+    tryLoadBoxes: function(boxes) {
+      var self = this;
+      if(self.preload === 0) {
+        self.preload = 1;
+      } else {
+        self.objectCollection.forEach(function(object) {
+          self.videoCollection.forEach(function(video) {
+            var sid = self.session.get('id');
+            var oid = object.get('id');
+            var vid = video.get('id');
+            var key = self.getUIBoxKey(oid, vid);
+            var bc = new BoxCollection();
+            self.boxUIPool[key] = bc;
+            bc.bootstrap(sid, oid, sid);
+            bc.fetch({
+              success: function(boxes) {
+                console.log(boxes);
+                self.addBoxUI(boxes);
+              }
+            })
+          });
+        });
+      }
+    },
+
+    addBoxUI: function(boxes) {
+      var self= this;
+      var boxEl = $(self.boxTemplate(boxes));
+      var boxUI = $('[boxPartyId="'+boxes.vid+'"]').append(boxEl);
+      self.$(boxEl).resizable().draggable({
+        containment: 'parent'
+      });
+    },
+
+    render: function () {
       var me = this;
-			this.$el.html(this.template());
+      this.$el.html(this.template());
       return this;
-		},
+    },
 
     renderVideos: function () {
       var self = this;
@@ -150,7 +174,7 @@ define(function(require) {
 
     submitObject: function(e) {
       var self = this;
-			e.preventDefault();
+      e.preventDefault();
       var attrs = this.getFormData(this.$el.find('form'));
       this.objectCollection.create({
         label: attrs.label,
@@ -163,8 +187,7 @@ define(function(require) {
     },
 
     getTime: function() {
-      var self = this;
-      return self.videoPlayers[0].currentTime();
+      return $('#scrub').val();
     },
 
 
@@ -251,9 +274,9 @@ define(function(require) {
             // frequently as the browser would allow,
             // the video is resync'ed.
             function sync() {
-		var syncedTime = videos[0].currentTime();
+    var syncedTime = videos[0].currentTime();
                 videos.forEach(function (b, time) {
-                    if (Math.abs(b.currentTime() - syncedTime) > 0.1 && b.media.readyState === 4) {
+                    if (Math.abs(b.currentTime() - syncedTime) > 0.5 && b.media.readyState === 4) {
                         b.currentTime(videos[0].currentTime());
                     }
                 });
@@ -262,34 +285,35 @@ define(function(require) {
             sync();
         },
 
-        playPauseAll: function() {
-            var self = this;
-            if (self.videoPlayers.length === 0) { // bind videos this only once
-                var toAdd = self.videoCollection.length;
-                var added = 0;
-                self.videoCollection.forEach(function (v) {
-                    added++;
-                    self.videoPlayers.push(Popcorn('#video' + v.get('id')));
-                    if (added === toAdd) {
-                        self.bindVideos();
-                    }
-                });
-            }
-            if(this.playing) {
-                self.videoCollection.forEach(function (video) {
-                    document.getElementById('video' + video.get('id')).pause();
-                }, this);
-            } else {
-                self.videoCollection.forEach(function (video) {
-                    document.getElementById('video' + video.get('id')).play();
-                }, this);
-            }
-            this.playing = !this.playing;
+        playAll: function() {
+          var self = this;
+          if (self.videoPlayers.length === 0) { // bind videos this only once
+            var toAdd = self.videoCollection.length;
+            var added = 0;
+            self.videoCollection.forEach(function (v) {
+              added++;
+              self.videoPlayers.push(Popcorn('#video' + v.get('id')));
+              if (added === toAdd) {
+                self.bindVideos();
+              }
+            });
+          }
+          self.videoCollection.forEach(function (video) {
+            document.getElementById('video' + video.get('id')).play();
+          }, this);
+
+        },
+
+        pauseAll: function() {
+          var self = this;
+          self.videoCollection.forEach(function (video) {
+            document.getElementById('video' + video.get('id')).pause();
+          }, this);
         },
 
         newBoundingBox: function (e) {
             var self = this;
-            self.playPauseAll();
+            self.pauseAll();
             self.addState = 1;
             console.log('adding bounding box');
             self.addState = true;
@@ -318,19 +342,10 @@ define(function(require) {
               object: parseInt(self.clickOid),
               video: parseInt(self.clickVid)
             };
-
-            self.saveBox(newBox);
+//            self.saveBox(newBox);
             self.addState = 0;
           }
         },
-
-        saveBox: function(box) {
-          this.videoCollection.saveBox(box);
-        },
-
-        addBoxToJournal: function(box) {
-          console.log(box);
-        } 
     });
 
     return SocView;
