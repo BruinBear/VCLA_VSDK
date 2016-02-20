@@ -2,6 +2,10 @@
 define(function (require) {
     var Backbone = require('Backbone');
 
+    var ObjectModel = require('../models/Query');
+
+    var QueryCollection = require('../collections/QueryCollection');
+
     var OntConfig = require('../models/OntConfig');
 
     var QueryView = Backbone.View.extend({
@@ -14,9 +18,14 @@ define(function (require) {
     		this.objectsDropdowns = {};
     		this.objectIdLabel = {};
     		this.ontConfig = new OntConfig();
+    		this.queryCollection = new QueryCollection();
     		this.objectAttr = {};
     		this.objectRel = {};
     		this.labelArray = [];
+    		this.predicates = [];
+    		this.finalAnswer = true;
+    		this.
+    		this.q = "";
     		var relDict = this.ontConfig.getRelDict();
     		this.objectRel = {};
     		this.objectCollection.foreach(function (o) {
@@ -95,6 +104,7 @@ define(function (require) {
 
     	$("#q-attr-o").on('click', '.msee-objects-dropdown-a', function(){
     		var ot = this.objectIdLabel[$(this).attr('data-oname')];
+    		$('#q-attr .list-group').html('');
     		for (var i = 0; i < this.objectAttr[ot].length; ++i)
       			$('#q-attr .list-group').append(
         			$('<a>', {
@@ -130,7 +140,7 @@ define(function (require) {
       			).append(
         			$('<span>', {
           				class: 'history-entry-a'
-        			}).html('A: Yes')
+        			}).html('A: '+$("#predicate-answer").val())
       			).hide().fadeIn('slow')
     		);
     	}
@@ -141,15 +151,42 @@ define(function (require) {
   		});
 
   		$('#q-attr').on('click', '.list-group-item', function() {
-    		var q = $('#q-attr #q-attr-o-objects-dropdown-dsp-span').attr('data-oname') + ' ' + $(this).html() + '?';
-    		appendQuestion(q);
+    		this.q = $('#q-attr #q-attr-o-objects-dropdown-dsp-span').attr('data-oname') + ' ' + $(this).html() + '?';
+    		this.isAttr = true;
   		});
 
   		$('#q-rel').on('click', '.list-group-item', function() {
-    		var q = $('#q-rel-o1-objects-dropdown-dsp-span').attr('data-oname')
+    		this.q = $('#q-rel-o1-objects-dropdown-dsp-span').attr('data-oname')
       			+ ' ' + $(this).html() + ' '
       			+ $('#q-rel-o2-objects-dropdown-dsp-span').attr('data-oname') + '?';
+      		this.isAttr = false;
+  		});
+
+  		$('#q-submit-btn').click(function() {
+  			if (new String($("#predicate-answer").val()).valueOf() == new String("no").valueOf()) {
+  				this.finalAnswer = false;
+  			}
+  			this.predicates.push(this.q);
     		appendQuestion(q);
+  		});
+
+  		$('#generate-query-btn').click(function() {
+  			var pred = '';
+  			if (this.predicates.length > 0) {
+  				pred = pred + this.predicates[0];
+  				for (var i = 1; i < this.predicates.length; ++i) {
+  					pred = pred + '&' + this.predicates[i];
+  				}
+  			}
+  			this.queryCollection.create({
+  				answer: this.finalAnswer,
+  				session: this.session,
+  				predicates: pred;
+  			},{
+  				wait: true
+  			});
+  			this.predicates = [];
+  			this.finalAnswer = true;
   		});
 
     });
