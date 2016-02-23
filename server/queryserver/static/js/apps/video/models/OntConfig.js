@@ -19,7 +19,7 @@ define(function(require) {
     			],
     			'ball': [],
     			'disk': [],
-			}
+			},
 			relationships: {
     			'on': [
         			[['person'], ['bike']],
@@ -40,7 +40,7 @@ define(function(require) {
         			]]
     			],
     		}
-    	}
+    	},
 
     	getRelDict: function(){
     		relDict = {};

@@ -14,6 +14,16 @@ define(function (require) {
 
     	template: require('hbs!./../templates/QueryView'),
 
+      events: {
+        'click #q-attr-o.msee-objects-dropdown-a': 'newAttr',
+        'click .q-rel-o.msee-objects-dropdown-a': 'newRel',
+        'click #q-attrlist-group-item': 'listAttr',
+        'click #q-rel.list-group-item': 'listRel',
+        'click #q-submit-btn': 'submitPredicate',
+        'click #generate-query-btn': 'generateQuery',
+        'change input#q-type-radios': 'changeTypeRadios',
+      },
+
     	initialize: function () {
     		this.objectsDropdowns = {};
     		this.objectIdLabel = {};
@@ -50,11 +60,11 @@ define(function (require) {
     	},
 
     	render: function() {
-        	this.$el.html(this.template(this.model.toJSON()));
-        	return this;
-        },
+        this.$el.html(this.template(this.model.toJSON()));
+        return this;
+      },
 
-        createObjectsDropdown: function(cid) {
+      createObjectsDropdown: function(cid) {
     		$('#'+cid).html('').append(
       			$('<button>', {
         			id: cid+'-objects-dropdown-btn',
@@ -82,7 +92,7 @@ define(function (require) {
           				.attr('data-oname', oname).html(oname +' ');
       			});
     		updateObjectsDropdown(cid);
-  		}
+  		},
 
   		updateObjectsDropdown: function(cid) {
     		this.objectsDropdowns[cid].html('');
@@ -100,9 +110,9 @@ define(function (require) {
         			)
       			);
       		});
-    	}
+    	},
 
-    	$("#q-attr-o").on('click', '.msee-objects-dropdown-a', function(){
+    	newAttr: function(){
     		var ot = this.objectIdLabel[$(this).attr('data-oname')];
     		$('#q-attr .list-group').html('');
     		for (var i = 0; i < this.objectAttr[ot].length; ++i)
@@ -112,9 +122,9 @@ define(function (require) {
           				href: '#',
         			}).html(this.objectAttr[ot][i])
       			);
-    	});
+    	},
 
-    	$(".q-rel-o").on('click', '.msee-objects-dropdown-a', function(){
+    	newRel: function(){
     		var on1 = $('#q-rel-o1-objects-dropdown-dsp-span').attr('data-oname');
     		var on2 = $('#q-rel-o2-objects-dropdown-dsp-span').attr('data-oname');
     		if (on1 && on2) {
@@ -127,7 +137,7 @@ define(function (require) {
           				}).html(this.objectRel[ot][i])
         			);
     		}
-    	});
+    	},
 
     	appendQuestion: function(q) {
     		$('#history-pool').append(
@@ -143,34 +153,29 @@ define(function (require) {
         			}).html('A: '+$("#predicate-answer").val())
       			).hide().fadeIn('slow')
     		);
-    	}
+    	},
 
-    	$('#q-type-radios input').change(function(){
-    		$('.q-info').hide();
-    		$('#'+$(this).attr('data-q')).show();
-  		});
-
-  		$('#q-attr').on('click', '.list-group-item', function() {
+  		listAttr: function() {
     		this.q = $('#q-attr #q-attr-o-objects-dropdown-dsp-span').attr('data-oname') + ' ' + $(this).html() + '?';
     		this.isAttr = true;
-  		});
+  		},
 
-  		$('#q-rel').on('click', '.list-group-item', function() {
+  		istRel: function() {
     		this.q = $('#q-rel-o1-objects-dropdown-dsp-span').attr('data-oname')
       			+ ' ' + $(this).html() + ' '
       			+ $('#q-rel-o2-objects-dropdown-dsp-span').attr('data-oname') + '?';
       		this.isAttr = false;
-  		});
+  		},
 
-  		$('#q-submit-btn').click(function() {
+  		submitPredicate: function() {
   			if (new String($("#predicate-answer").val()).valueOf() == new String("no").valueOf()) {
   				this.finalAnswer = false;
   			}
   			this.predicates.push(this.q);
     		appendQuestion(q);
-  		});
+  		},
 
-  		$('#generate-query-btn').click(function() {
+  		generateQuery: function() {
   			var pred = '';
   			if (this.predicates.length > 0) {
   				pred = pred + this.predicates[0];
@@ -181,13 +186,21 @@ define(function (require) {
   			this.queryCollection.create({
   				answer: this.finalAnswer,
   				session: this.session,
-  				predicates: pred;
+  				predicates: pred,
   			},{
   				wait: true
   			});
   			this.predicates = [];
   			this.finalAnswer = true;
-  		});
+        $('#history-pool').html('');
+  		},
+
+      changeTypeRadios: function() {
+          $('.q-info').hide();
+          $('#'+$(this).attr('data-q')).show();
+      },
 
     });
-}
+
+    return QueryView;
+});
