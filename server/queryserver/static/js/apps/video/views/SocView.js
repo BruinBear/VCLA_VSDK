@@ -22,7 +22,8 @@ define(function(require) {
       'click #playButton': 'playAll',
       'click #pauseButton': 'pauseAll',
       'click .boundingBoxButton': 'newBoundingBox',
-      'click video': 'videoClickHandle'
+      'click .boxParty': 'videoClickHandle',
+      'change input#scrub': 'updateBoxUI'
     },
 
     template: require('hbs!./../templates/SocView'),
@@ -31,8 +32,8 @@ define(function(require) {
 
     initialize: function () {
         var self = this;
-        this.scrub = $("#scrub"),
-
+        this.scrub = $("#scrub");
+        this.clockId = null;
         this.playing = false;
         this.subviews = [];
         this.videoPlayers = [];
@@ -101,6 +102,10 @@ define(function(require) {
       });
     },
 
+    getTime: function() {
+      return this.videoPlayers[0].currentTime();
+    },
+
     getUIBoxKey: function(oid, vid) {
       return 'o'+oid+'v'+vid;
     },
@@ -116,9 +121,10 @@ define(function(require) {
             var oid = object.get('id');
             var vid = video.get('id');
             var key = self.getUIBoxKey(oid, vid);
+            console.log(key);
             var bc = new BoxCollection();
             self.boxUIPool[key] = bc;
-            bc.bootstrap(sid, oid, sid);
+            bc.bootstrap(sid, oid, vid);
             bc.fetch({
               success: function(boxes) {
                 console.log(boxes);
@@ -130,26 +136,124 @@ define(function(require) {
       }
     },
 
+    findNeighbors: function(boxes, t) {
+      if(t <= boxes.at(0).get('time'))
+        return {left: null, right: boxes.at(0)};
+      if(t >= boxes.at(boxes.length-1).get('time'))
+        return {left: null, right: boxes.at(boxes.length-1)};
+      var lo = 0;
+      var hi = boxes.length-1;
+      while(lo+1 < hi) {
+        var mid =  Math.floor((lo+hi)/2);
+        var midTime = boxes.at(mid).get('time');
+        if(midTime < t) {
+          lo = mid;
+        } else if(midTime >= t) {
+          hi = mid;
+        }
+      }
+      return {left: boxes.at(lo), right: boxes.at(hi)};
+    },
+
+    linearCombination: function(boxPair, t) {
+      if(boxPair.left == null) {
+        estimate = boxPair.right.toJSON();
+        delete estimate.id;
+        estimate.time = t;
+        return estimate;
+      }
+      var left = boxPair.left.toJSON();
+      var right = boxPair.right.toJSON();
+      var lt = left.time;
+      var rt = right.time;
+      var offset = (t-lt)/(rt-lt);
+      return {
+        time: t,
+        session: left.session,
+        video: left.video,
+        object: left.object,
+        x: left.x+(right.x-left.x)*offset,
+        y: left.y+(right.y-left.y)*offset,
+        xlen: left.xlen+(right.xlen-left.xlen)*offset,
+        ylen: left.ylen+(right.ylen-left.ylen)*offset
+      }
+    },
+
+    estimateBox: function(boxes, time) {
+      var self = this;
+      var neighbors = self.findNeighbors(boxes, time);
+      var box = self.linearCombination(neighbors, time);
+      return box;
+    },
+
+    updateBoxUI: function() {
+      var self = this;
+      var time = self.getTime();
+      for (var key in self.boxUIPool) {
+        var boxes = self.boxUIPool[key];
+        if(boxes.length == 0) {
+          boxes.UI.hide();
+          continue;
+        } else {
+          boxes.UI.show();
+        }
+        var pos = self.estimateBox(boxes, time); 
+        $(boxes.UI).css({
+          width: pos.xlen,
+          height: pos.ylen,
+          left: pos.x,
+          top: pos.y
+        });
+      }
+    },
+
     addBoxUI: function(boxes) {
       var self= this;
       var boxEl = $(self.boxTemplate(boxes));
-      var boxUI = $('[boxPartyId="'+boxes.vid+'"]').append(boxEl);
+      boxes.UI = boxEl;
+      var boxUI = $('[boxpartyid="'+boxes.vid+'"]').append(boxEl);
+      $(boxEl).hide();
+      if(boxes.length > 0) {
+        var first = boxes.at(0);
+        $(boxEl).css({
+          left: first.x,
+          top: first.y,
+          width: first.xlen,
+          height: first.ylen
+        });
+      }
       self.$(boxEl).resizable({
+        start: function(e, ui) {
+          self.pauseAll();
+          self.resizeStart = e;
+        },
         stop: function(e, ui) {
-          var x = $(e.target).offset().left;
-          var y = $(e.target).offset().top;
-          var xlen = $(e.target).width;
-          var ylen = $(e.target).height;
+          var newBox = self.estimateBox(boxes, self.getTime());  
+          newBox.xlen += e.pageX-self.resizeStart.pageX;
+          newBox.ylen += e.pageY-self.resizeStart.pageY;
+          boxes.create(newBox);
         }
       }).draggable({
         containment: 'parent',
         start: function(e, ui) {
-          console.log(e);
+          self.pauseAll();
+          self.dragStart = e;
         },
         stop: function(e, ui) {
-          console.log(e)
+          var newBox = self.estimateBox(boxes, self.getTime());  
+          newBox.x += e.pageX-self.dragStart.pageX;
+          newBox.y += e.pageY-self.dragStart.pageY;
+          boxes.create(newBox);
         }
       });
+    },
+
+    getBoxUI: function(vid, oid) {
+      return $('div.boundingBox[vid="vid"][oid="oid"]');
+    },
+
+    getBoxCollection: function(oid, vid) {
+      return this.boxUIPool[this.getUIBoxKey(oid, vid)];
     },
 
     render: function () {
@@ -199,11 +303,7 @@ define(function(require) {
       console.log('add object');
     },
 
-    getTime: function() {
-      return $('#scrub').val();
-    },
-
-
+    
     getFormData: function(form) {
       var unindexed_array = form.serializeArray();
       var indexed_array = {};
@@ -215,8 +315,9 @@ define(function(require) {
       return indexed_array;
     },
         
-        // Check https://bocoup.com/weblog/html5-video-synchronizing-playback-of-two-videos
+    // Check https://bocoup.com/weblog/html5-video-synchronizing-playback-of-two-videos
     bindVideos: function () {
+      var self = this;
       var videos = this.videoPlayers;
       var scrub = $("#scrub"),
           loadCount = 0,
@@ -233,10 +334,6 @@ define(function(require) {
         }).on("sync", function () {
             // Once both items are loaded, sync events
             if (++loadCount === videos.length) {
-                // sync progress bar
-                window.setInterval(function () {
-                    scrub.val(videos[0].currentTime());
-                }, 1000);
                 // Iterate all events and trigger them on the video B
                 // whenever they occur on the video A
                 events.forEach(function (event) {
@@ -287,10 +384,11 @@ define(function(require) {
             // frequently as the browser would allow,
             // the video is resync'ed.
             function sync() {
-    var syncedTime = videos[0].currentTime();
-                videos.forEach(function (b, time) {
-                    if (Math.abs(b.currentTime() - syncedTime) > 0.5 && b.media.readyState === 4) {
-                        b.currentTime(videos[0].currentTime());
+              var syncedTime = videos[0].currentTime();
+              videos.forEach(function (b, time) {
+                if (Math.abs(b.currentTime() - syncedTime) > 1.5 &&
+                    b.media.readyState === 4) {
+                      b.currentTime(videos[0].currentTime());
                     }
                 });
                 requestAnimationFrame(sync);
@@ -300,6 +398,7 @@ define(function(require) {
 
         playAll: function() {
           var self = this;
+          
           if (self.videoPlayers.length === 0) { // bind videos this only once
             var toAdd = self.videoCollection.length;
             var added = 0;
@@ -311,14 +410,20 @@ define(function(require) {
               }
             });
           }
-          self.videoCollection.forEach(function (video) {
-            document.getElementById('video' + video.get('id')).play();
+          var scrub = $("#scrub");
+          self.clockId = window.setInterval(function () {
+              scrub.val(self.videoPlayers[0].currentTime());
+              self.updateBoxUI();
+          }, 100);
+          self.videoPlayers.forEach(function (player) {
+            player.play();
           }, this);
 
         },
 
         pauseAll: function() {
           var self = this;
+          window.clearInterval(self.clockId);
           self.videoCollection.forEach(function (video) {
             document.getElementById('video' + video.get('id')).pause();
           }, this);
@@ -338,24 +443,26 @@ define(function(require) {
           if(this.addState == 0) {
             return;
           } else if(this.addState==1) {
-            self.startPos = {X: e.clientX, Y: e.clientY};
+            self.startPos = {X: e.offsetX, Y: e.offsetY};
             self.addState = 2;
-            self.clickVid = $(e.target).attr('videoid');
+            self.clickVid = $(e.target).attr('boxpartyid');
           } else if(this.addState==2) {
             console.log('second pos');
-            if($(e.target).attr('videoid') !== self.clickVid) { // skip if clicked different video
+            if($(e.target).attr('boxpartyid') !== self.clickVid) { // skip if clicked different video
               return;
             }
             var newBox = {
+              session: self.session.get('id'),
               time: self.getTime(),
-              x: self.startPos.X,
-              y: self.startPos.Y,
-              xlen: e.clientX - self.startPos.X,
-              ylen: e.clientY - self.startPos.Y,
+              x: Math.min(self.startPos.X, e.offsetX),
+              y: Math.min(self.startPos.Y, e.offsetY),
+              xlen: Math.abs(e.offsetX - self.startPos.X),
+              ylen: Math.abs(e.offsetY - self.startPos.Y),
               object: parseInt(self.clickOid),
               video: parseInt(self.clickVid)
             };
-//            self.saveBox(newBox);
+            var toBeAdded = self.getBoxCollection(self.clickOid, self.clickVid);
+            toBeAdded.create(newBox);
             self.addState = 0;
           }
         },
