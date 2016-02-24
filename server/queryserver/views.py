@@ -329,7 +329,7 @@ def boxes_with_sessionid(request, sessionId):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET','POST'])
-def session_matched_boxes(request, sessionId, objectId, videoId):
+def box_controller(request, sessionId, objectId, videoId):
     boxes = Box.objects.filter(session_id=sessionId).filter(object_id=objectId).filter(video_id=videoId)
 
     if request.method == 'GET':
@@ -341,4 +341,17 @@ def session_matched_boxes(request, sessionId, objectId, videoId):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+def box_update(request, sessionId, objectId, videoId, boxId):
+    """
+    Update predicates in a query with query id
+    """
+    try:
+        box = Box.objects.get(id=boxId)
+    except Box.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    box.save()
+    serializer = BoxSerializer(box)
+    return Response(serializer.data)
 

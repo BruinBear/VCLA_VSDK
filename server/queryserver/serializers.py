@@ -29,4 +29,4 @@ class ObjectSerializer(serializers.ModelSerializer):
 class BoxSerializer(serializers.ModelSerializer):
     class Meta:
         model = Box
-        fields = ('id', 'object', 'video','time', 'x','y','xlen','ylen')
+        fields = ('id', 'session','object', 'video','time', 'x','y','xlen','ylen')
