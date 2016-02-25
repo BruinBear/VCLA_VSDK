@@ -39,24 +39,7 @@ define(function(require) {
             			'disk',
         			]]
     			],
-    		}
-    	},
-
-    	getRelDict: function(){
-    		relDict = {};
-    		for (var key in this.relationships) {
-    			var values = this.relationships[key];
-    			for (var i = 0; i < values.length; ++i) {
-    				for (var j = 0; j < values[i][0].length; ++j) {
-    					for (var k = 0; k < values[i][1].length; ++k) {
-    						if (!(values[i][j]+' '+values[i][k] in relDict)) {
-    							relDict[values[i][j]+' '+values[i][k]] = key;
-    						}
-    					}
-    				}
-    			}
-    		}
-    		return relDict;
+    		},
     	}
     });
 
