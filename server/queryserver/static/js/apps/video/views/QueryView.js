@@ -167,6 +167,7 @@ define(function (require) {
     		var on2 = $('#q-rel-o2-objects-dropdown-dsp-span').attr('data-oname');
     		if (on1 && on2) {
       			var ot = self.objectIdLabel[on1]+' '+self.objectIdLabel[on2];
+            $('#q-rel .list-group').html('');
       			for (var i = 0; i < self.objectRel[ot].length; ++i)
         			$('#q-rel .list-group').append(
           				$('<a>', {
@@ -225,8 +226,6 @@ define(function (require) {
         self.q = '';
         $('#history-pool').html('');
         $('#query-comment').html('');
-        $('#q-rel').hide();
-        $('q-attr-o-objects-dropdown-dsp-span').html('Object');
   		},
 
     });
