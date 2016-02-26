@@ -1,8 +1,10 @@
 define(function (require) {
   var Backbone = require('Backbone'),
-  SocCollection = require('../collections/SocCollection'),
-  SessionCollection = require('../collections/SessionCollection'),
-  Session = require('../models/Session');
+    SocCollection = require('../collections/SocCollection'),
+    SessionCollection = require('../collections/SessionCollection'),
+    Session = require('../models/Session'),
+    VideoView = require('../../video/views/SocView');
+
 
   var MainView = Backbone.View.extend({
     template: require('hbs!./../templates/HomeView'),
@@ -57,23 +59,20 @@ define(function (require) {
 
     newSession: function(socId) {
       var self = this;
-      self.session = new Session({'soc': socId});
+      self.session = new Session({'soc': self.socSelected});
       self.session.save(null, {
         error: function(err) {
           console.log(err);
         },
         success: function(session) {
-          console.log(session);
+          self.videoView = new VideoView({
+            el: $(self.el)
+          });
+          self.videoView.session = session;        
+          self.videoView.render();
+          self.videoView.afterSessionLoad();
         }
       });
-    },
-
-    newSessionWithSoc: function(e) {
-      this.newSession(parseInt($(e.target).attr('socId')));
-    },
-
-    afterSessionLoaded: function(data) {
-      var self = this;
     }
 
   });
