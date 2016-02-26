@@ -21,8 +21,6 @@ define(function (require) {
       events: {
         'click #q-attr-o .msee-objects-dropdown-a': 'newAttr',
         'click .q-rel-o .msee-objects-dropdown-a': 'newRel',
-        'click #q-attr .list-group-item': 'listAttr',
-        'click #q-rel .list-group-item': 'listRel',
         'click #q-submit-btn': 'submitPredicate',
         'click #generate-query-btn': 'generateQuery',
       },
@@ -53,8 +51,9 @@ define(function (require) {
             for (var j = 0; j < values[i][0].length; ++j) {
               for (var k = 0; k < values[i][1].length; ++k) {
                 if (!(values[i][0][j]+' '+values[i][1][k] in self.relDict)) {
-                  self.relDict[values[i][0][j]+' '+values[i][1][k]] = key;
+                  self.relDict[values[i][0][j]+' '+values[i][1][k]] = [];
                 }
+                self.relDict[values[i][0][j]+' '+values[i][1][k]].push(key);
               }
             }
           }
@@ -71,9 +70,8 @@ define(function (require) {
     			for (var j = 0; j < self.labelArray.length; ++j) {
     				if (!(self.labelArray[i]+' '+self.labelArray[j] in self.objectRel)) {
     					self.objectRel[self.labelArray[i]+' '+self.labelArray[j]] 
-                = [];
+                = self.relDict[self.labelArray[i]+' '+self.labelArray[j]]
     				}
-            self.objectRel[self.labelArray[i]+' '+self.labelArray[j]].push(self.relDict[self.labelArray[i]+' '+self.labelArray[j]]);
     			}
     		}
     	},
@@ -88,6 +86,14 @@ define(function (require) {
         $('#q-type-radios input').change(function(){
           $('.q-info').hide();
           $('#'+$(this).attr('data-q')).show();
+        });
+        $('#q-attr').on('click', '.list-group-item', function() {
+          self.q = $('#q-attr #q-attr-o-objects-dropdown-dsp-span').attr('data-oname') + ' ' + $(this).html() + '?';
+        });
+        $('#q-rel').on('click', '.list-group-item', function() {
+          self.q = $('#q-rel-o1-objects-dropdown-dsp-span').attr('data-oname')
+            + ' ' + $(this).html() + ' '
+            + $('#q-rel-o2-objects-dropdown-dsp-span').attr('data-oname') + '?';
         });
         return self;
       },
@@ -187,25 +193,12 @@ define(function (require) {
     		);
     	},
 
-  		listAttr: function() {
-        var self = this;
-    		self.q = $('#q-attr #q-attr-o-objects-dropdown-dsp-span').attr('data-oname') + ' ' + $('#q-attr .list-group-item').html() + '?';
-  		},
-
-  		listRel: function() {
-        var self = this;
-    		self.q = $('#q-rel-o1-objects-dropdown-dsp-span').attr('data-oname')
-      			+ ' ' + $('#q-rel .list-group-item').html() + ' '
-      			+ $('#q-rel-o2-objects-dropdown-dsp-span').attr('data-oname') + '?';
-  		},
-
   		submitPredicate: function() {
         var self = this;
   			if (new String($("#predicate-answer").val()).valueOf() == new String("no").valueOf()) {
   				self.finalAnswer = false;
   			}
         var predi = self.q+"&&answer is: "+$("#predicate-answer").val();
-        console.log(predi);
   			self.predicates.push(predi);
     		self.appendQuestion(self.q);
   		},
@@ -229,7 +222,11 @@ define(function (require) {
   			});
   			self.predicates = [];
   			self.finalAnswer = true;
+        self.q = '';
         $('#history-pool').html('');
+        $('#query-comment').html('');
+        $('#q-rel').hide();
+        $('q-attr-o-objects-dropdown-dsp-span').html('Object');
   		},
 
     });
