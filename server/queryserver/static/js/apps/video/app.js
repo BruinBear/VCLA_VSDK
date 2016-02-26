@@ -1,9 +1,9 @@
 define(function (require) {
-	var SocView = require('./views/SocView');
+	var QueryView = require('./views/QueryView');
 
 	return {
 		run: function(viewManager) {
-      var view = new SocView({
+      var view = new QueryView({
       });
       viewManager.show(view);
 		}
