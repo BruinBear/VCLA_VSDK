@@ -4,9 +4,14 @@ define(function(require) {
 
 	var Router = Backbone.Router.extend({
 		routes: {
-			'index/#': 'video',
+			'index/#': 'home',
+                        'index/#video': 'video',
 			'index/#contacts': 'contacts',
 			'index/#tasks': 'tasks'
+		},
+
+		home: function () {
+			require('./../apps/home/app').run(viewManager);
 		},
 
 		video: function () {

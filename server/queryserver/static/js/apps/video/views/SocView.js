@@ -59,36 +59,10 @@ define(function(require) {
         this.endPos = null;
     },
 
-    newSession: function () {
+    afterSessionLoad: function() {
       var self = this;
-      self.session = new Session({'soc': 1});
-      self.session.save(null, {
-        error: function(err) {
-          console.log(err);
-        },
-        success: function(data) {
-          self.afterSessionLoaded(data);
-        }
-      });
-    },
-
-    loadSession: function () {
-      var self = this;
-      self.session = new Session({'id': 1});
-      self.session.fetch({
-        error: function(err) {
-          console.log(err);
-        },
-        success: function(data) {
-          self.afterSessionLoaded(data);
-        }
-      });
-    },
-
-    afterSessionLoaded: function(data) {
-      var self = this;
-      self.videoCollection.sessionId = data.get('soc');
-      self.objectCollection.sessionId = data.get('soc');
+      self.videoCollection.sessionId = self.session.get('soc');
+      self.objectCollection.sessionId = self.session.get('soc');
       self.videoCollection.fetch({
         success: function(vids) {
           self.renderVideos();
@@ -123,6 +97,9 @@ define(function(require) {
             var key = self.getUIBoxKey(oid, vid);
             console.log(key);
             var bc = new BoxCollection();
+            bc.on('add', function() {
+              self.updateBoxUI();
+            })
             self.boxUIPool[key] = bc;
             bc.bootstrap(sid, oid, vid);
             bc.fetch({
@@ -423,7 +400,10 @@ define(function(require) {
 
         pauseAll: function() {
           var self = this;
-          window.clearInterval(self.clockId);
+          if(self.clockId != null) {
+            window.clearInterval(self.clockId);
+            self.clockId = null;
+          }
           self.videoCollection.forEach(function (video) {
             document.getElementById('video' + video.get('id')).pause();
           }, this);
@@ -463,6 +443,7 @@ define(function(require) {
             };
             var toBeAdded = self.getBoxCollection(self.clickOid, self.clickVid);
             toBeAdded.create(newBox);
+
             self.addState = 0;
           }
         },

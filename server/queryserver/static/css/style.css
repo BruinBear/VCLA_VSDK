@@ -78,3 +78,8 @@ div.vidBox {
     width:500px;
 }
 /* end bounding box*/
+div.tableDiv {
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    padding: 20px; 
+}
