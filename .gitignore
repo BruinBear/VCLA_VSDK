@@ -4,3 +4,4 @@
 server/env
 server/queryserver/static/public/components
 server/server/settings.py
+*.swp

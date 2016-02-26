@@ -1,10 +1,8 @@
 define(function (require) {
   var Backbone = require('Backbone'),
-    SocCollection = require('../collections/SocCollection'),
     SessionCollection = require('../collections/SessionCollection'),
-    Session = require('../models/Session'),
-    VideoView = require('../../video/views/SocView');
-
+    SocCollection = require('../collections/SocCollection'),
+    Session = require('../models/Session');
 
   var MainView = Backbone.View.extend({
     template: require('hbs!./../templates/HomeView'),
@@ -27,16 +25,18 @@ define(function (require) {
       this.sessions.on('add', function(session) {
         self.addSessionRow(session);
       });
-      
-      this.socs.fetch();
-      this.sessions.fetch();
-      
       this.socSelected = null;
       this.sessionSelected = null;
     },
 
     render: function() {
       this.$el.append(this.template());
+      this.socs.fetch();
+      this.sessions.fetch();
+      
+      this.socSelected = null;
+      this.sessionSelected = null;
+      
       return this;
     },
 
@@ -65,12 +65,7 @@ define(function (require) {
           console.log(err);
         },
         success: function(session) {
-          self.videoView = new VideoView({
-            el: $(self.el)
-          });
-          self.videoView.session = session;        
-          self.videoView.render();
-          self.videoView.afterSessionLoad();
+          Backbone.history.navigate('/session/' + session.get('id') + '/video', {trigger: true});
         }
       });
     }
