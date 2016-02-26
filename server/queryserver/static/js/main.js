@@ -17,8 +17,12 @@ require.config({
 			exports: '_'
 		},
 
+                'Bootstrap': {
+                        deps: ['jQuery']
+                },
+
 		'Backbone': {
-			deps: ['Underscore', 'jQuery', 'jQueryUI'],
+			deps: ['Underscore', 'jQuery', 'jQueryUI', 'Bootstrap'],
 			exports: 'Backbone'
 		},
 
@@ -36,6 +40,7 @@ require.config({
 		jQuery: './../public/components/jquery/dist/jquery',
 		jQueryUI: './../public/components/jquery-ui/jquery-ui.min',
 		Underscore: './../public/components/underscore/underscore',
+                Bootstrap: './../public/components/bootstrap/dist/js/bootstrap.min',
 		underscore: './../public/components/require-handlebars-plugin/hbs/underscore',
 		Backbone: './../public/components/backbone/backbone',
 		handlebars: './../public/components/require-handlebars-plugin/Handlebars',
