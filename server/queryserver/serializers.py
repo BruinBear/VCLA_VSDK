@@ -24,7 +24,7 @@ class QuerySerializer(serializers.ModelSerializer):
 class ObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Object
-        fields = ('id', 'session', 'label')
+        fields = ('id', 'session', 'label', 'color')
 
 class BoxSerializer(serializers.ModelSerializer):
     class Meta:

@@ -25,6 +25,7 @@ class Query(models.Model):
 class Object(models.Model):
     label = models.CharField(max_length=256)
     session = models.ForeignKey(Session)
+    color = models.CharField(max_length=10, default="#FF0000")
 
 class Box(models.Model):
     object = models.ForeignKey(Object)
