@@ -204,7 +204,9 @@ define(function (require) {
   			if (new String($("#predicate-answer").val()).valueOf() == new String("no").valueOf()) {
   				self.finalAnswer = false;
   			}
-  			self.predicates.push(self.q);
+        var predi = self.q+"&&answer is: "+$("#predicate-answer").val();
+        console.log(predi);
+  			self.predicates.push(predi);
     		self.appendQuestion(self.q);
   		},
 
@@ -221,7 +223,7 @@ define(function (require) {
   				answer: self.finalAnswer,
   				session: self.session,
   				predicates: pred,
-          comment: "hhh",
+          comment: $("#query-comment").val(),
   			},{
   				wait: true
   			});
