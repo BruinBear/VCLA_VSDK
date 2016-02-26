@@ -1,11 +1,13 @@
 define(function (require) {
   var Backbone = require('Backbone'),
   SocCollection = require('../collections/SocCollection'),
+  SessionCollection = require('../collections/SessionCollection'),
   Session = require('../models/Session');
 
   var MainView = Backbone.View.extend({
     template: require('hbs!./../templates/HomeView'),
     socRow: require('hbs!./../templates/SocRow'),
+    sessionRow: require('hbs!./../templates/SessionRow'),
 
     events: {
       'click #newSession': 'newSession',
@@ -19,8 +21,16 @@ define(function (require) {
       this.socs.on('add', function(soc) {
         self.addSocRow(soc);
       });
+      this.sessions = new SessionCollection();
+      this.sessions.on('add', function(session) {
+        self.addSessionRow(session);
+      });
+      
       this.socs.fetch();
+      this.sessions.fetch();
+      
       this.socSelected = null;
+      this.sessionSelected = null;
     },
 
     render: function() {
@@ -30,6 +40,10 @@ define(function (require) {
 
     addSocRow: function(soc) {
       this.$('table#socTable > tbody').append(this.socRow(soc.toJSON()));
+    },
+
+    addSessionRow: function(session) {
+      this.$('table#sessionTable > tbody').append(this.sessionRow(session.toJSON()));
     },
 
     selectSocRow: function(e) {
