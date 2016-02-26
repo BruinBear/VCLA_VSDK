@@ -1,9 +1,9 @@
 define(function (require) {
-  var VideoView = require('./views/VideoView');
+  var QueryView = require('./views/QueryView');
 
   return {
     run: function(viewManager, sid) {
-      var view = new VideoView();
+      var view = new QueryView();
       view.sid = sid;
       viewManager.show(view);
     }

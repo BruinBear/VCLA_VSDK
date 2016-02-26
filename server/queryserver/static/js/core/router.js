@@ -1,35 +1,33 @@
 define(function(require) {
-	var Backbone = require('Backbone');
-	var viewManager = require('./viewManager');
-	var queryView = require('./../apps/video/views/QueryView');
+  var Backbone = require('Backbone');
+  var viewManager = require('./viewManager');
 
-	var Router = Backbone.Router.extend({
-		routes: {
-			'index/#': 'home',
-                        'index/#video': 'video',
-			'index/#contacts': 'contacts',
-			'index/#tasks': 'tasks',
-			'index/#queries': 'queries',
-		},
+  var Router = Backbone.Router.extend({
+    routes: {
+      'session/': 'home',
+      'session/:sid/video': 'video',
+      'session/:sid/query': 'query',
+    },
 
-		home: function () {
-			require('./../apps/home/app').run(viewManager);
-		},
+    home: function () {
+      require('./../apps/home/app').run(viewManager);
+    },
 
-		video: function () {
-			this.view && this.view.remove();
-			require('./../apps/video/app').run(viewManager);
-		},
+    video: function (sid) {
+      this.view && this.view.remove();
+      require('./../apps/video/app').run(viewManager, sid);
+    },
 
-		queries: function () {
-			this.view && this.view.remove();
-			this.view = new queryView();
-		},
+    query: function (sid) {
+      this.view && this.view.remove();
+      require('./../apps/query/app').run(viewManager, sid);
+    },
 
-		help: function () {
-			require('./../apps/tasks/app').run(viewManager);
-		}
-	});
+    queries: function (sid) {
+      this.view && this.view.remove();
+      this.view = new queryView();
+    },
+  });
 
-	return Router;
+  return Router;
 });

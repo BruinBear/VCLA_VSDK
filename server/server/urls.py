@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 import queryserver.views as qv
 
 urlpatterns = [ 
+    url(r'^session/$', qv.home),
     url(r'^api/query/$', qv.query_list),
     url(r'^api/query/(?P<pk>[0-9]+)/$', qv.query_detail),
 
@@ -31,6 +32,4 @@ urlpatterns = [
     url(r'^api/updatepredicates/(?P<queryId>[0-9]+)/$', qv.update_predicates_with_queryid),
     url(r'^api/updateanswer/(?P<queryId>[0-9]+)/$', qv.update_answer_with_queryid),
     url(r'^api/updatecomment/(?P<queryId>[0-9]+)/$', qv.update_comment_with_queryid),
-
-    url(r'^index/$', qv.home),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
